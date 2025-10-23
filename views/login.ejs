@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
+    <title>Login - Barcode Protocol</title>
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#106EBE">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Barcode Protocol">
+    <link rel="apple-touch-icon" href="/icons/icon-152x152.svg">
+    
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/mobile-responsive.css" />
+  </head>
+  <body class="login-body">
+    <div class="login-background">
+      <div class="login-container">
+        <div class="login-card">
+          <style>
+            /* Small, component-scoped tweaks for login page */
+            .input-wrapper { position: relative; }
+            .password-toggle {
+              position: absolute;
+              right: 10px;
+              background: transparent;
+              border: none;
+              color: #718096;
+              cursor: pointer;
+              padding: 6px;
+              border-radius: 6px;
+            }
+            .password-toggle:hover { background: #edf2f7; }
+            .login-actions { display:flex; align-items:center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+            .remember-me { display:flex; align-items:center; gap:8px; color:#4a5568; font-size: 14px; }
+            .remember-me input { width: auto; }
+          </style>
+          <div class="login-header">
+            <div class="app-icon">
+              <svg width="48" height="48" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                <rect width="48" height="48" fill="#106EBE" rx="8"/>
+                <rect x="8" y="8" width="32" height="32" fill="white" rx="4"/>
+                <rect x="12" y="12" width="4" height="24" fill="#106EBE"/>
+                <rect x="18" y="12" width="4" height="24" fill="#106EBE"/>
+                <rect x="24" y="12" width="4" height="24" fill="#106EBE"/>
+                <rect x="30" y="12" width="4" height="24" fill="#106EBE"/>
+              </svg>
+            </div>
+            <h1>Barcode Protocol System</h1>
+            <p>Masuk ke dashboard admin</p>
+          </div>
+          
+          <% if (error) { %>
+          <div class="error-message">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+            </svg>
+            <%= error %>
+          </div>
+          <% } %>
+          
+          <form method="post" action="/login" class="login-form">
+            <div class="input-group">
+              <label for="username">Username</label>
+              <div class="input-wrapper">
+                <svg class="input-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                </svg>
+                <input type="text" id="username" name="username" autocomplete="username" placeholder="Masukkan username" required />
+              </div>
+            </div>
+            
+            <div class="input-group">
+              <label for="password">Password</label>
+              <div class="input-wrapper">
+                <svg class="input-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                </svg>
+                <input type="password" id="password" name="password" autocomplete="current-password" placeholder="Masukkan password" required />
+                <button type="button" id="togglePassword" class="password-toggle" aria-label="Tampilkan/sembunyikan password" title="Tampilkan/sembunyikan password">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M12 5c-7.633 0-11 7-11 7s3.367 7 11 7 11-7 11-7-3.367-7-11-7zm0 12a5 5 0 110-10 5 5 0 010 10zm0-2a3 3 0 100-6 3 3 0 000 6z"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div class="login-actions">
+              <label class="remember-me">
+                <input type="checkbox" name="remember" value="1" /> Ingat saya
+              </label>
+              <button type="submit" class="login-button">
+                <span>Masuk ke Dashboard</span>
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+              </button>
+            </div>
+          </form>
+
+        </div>
+      </div>
+    </div>
+    
+    <script>
+      // Test form submission
+      document.querySelector('.login-form').addEventListener('submit', function(e) {
+        console.log('Form submitted');
+        console.log('Username:', document.getElementById('username').value);
+        console.log('Password:', document.getElementById('password').value);
+        // Let the form submit normally
+      });
+
+      // Toggle show/hide password
+      const pwd = document.getElementById('password');
+      const toggle = document.getElementById('togglePassword');
+      if (toggle) {
+        toggle.addEventListener('click', function() {
+          const isPwd = pwd.getAttribute('type') === 'password';
+          pwd.setAttribute('type', isPwd ? 'text' : 'password');
+          this.setAttribute('aria-pressed', isPwd ? 'true' : 'false');
+        });
+      }
+      
+      // Register Service Worker for PWA functionality
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('SW registered: ', registration);
+            })
+            .catch((registrationError) => {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+      }
+    </script>
+  </body>
+</html>

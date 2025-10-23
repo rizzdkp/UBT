@@ -1,0 +1,579 @@
+/* ============================================
+   MOBILE & TABLET RESPONSIVE ENHANCEMENTS
+   ============================================ */
+
+/* Touch-friendly base improvements */
+* {
+  -webkit-tap-highlight-color: rgba(66, 153, 225, 0.2);
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+input, textarea, select {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* Smooth scrolling for all devices */
+html {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent zoom on input focus (iOS) */
+@media screen and (max-width: 768px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  select,
+  textarea {
+    font-size: 16px !important; /* Prevents zoom on iOS */
+  }
+}
+
+/* ============================================
+   MOBILE FIRST (320px - 480px)
+   ============================================ */
+@media (max-width: 480px) {
+  body {
+    font-size: 14px;
+    padding: 0;
+    margin: 0;
+  }
+
+  .container {
+    max-width: 100%;
+    padding: 10px;
+    margin: 0;
+  }
+
+  /* Header */
+  header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 15px 10px;
+    gap: 10px;
+  }
+
+  header h1 {
+    font-size: 1.3rem;
+    margin: 0;
+  }
+
+  .user {
+    font-size: 12px;
+    width: 100%;
+    text-align: left;
+  }
+
+  /* Sections */
+  section {
+    margin-bottom: 15px;
+    padding: 15px;
+    border-radius: 8px;
+  }
+
+  section h2 {
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+  }
+
+  /* Forms */
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  form label {
+    font-size: 13px;
+    margin-bottom: 5px;
+  }
+
+  input, select, textarea {
+    width: 100% !important;
+    padding: 12px;
+    font-size: 16px;
+    min-height: 44px; /* Apple's recommended touch target */
+    border-radius: 6px;
+  }
+
+  button {
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+    min-height: 48px;
+    border-radius: 8px;
+    margin: 5px 0;
+  }
+
+  /* Tables - Make scrollable horizontally */
+  table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    font-size: 12px;
+  }
+
+  th, td {
+    padding: 8px 6px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  /* Barcode images */
+  .barcode-cell img {
+    max-width: 80px;
+    height: auto;
+  }
+
+  /* Stats grid */
+  .stats-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px;
+  }
+
+  .stats-controls {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .stats-controls select,
+  .stats-controls input,
+  .stats-controls button {
+    width: 100%;
+  }
+
+  /* Charts */
+  .charts-row {
+    flex-direction: column;
+  }
+
+  .chart-container {
+    width: 100% !important;
+    height: 250px !important;
+    margin-bottom: 15px;
+  }
+
+  /* Metrics grid */
+  .metrics-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Form rows */
+  .form-row {
+    flex-direction: column;
+  }
+
+  .form-group {
+    width: 100%;
+  }
+
+  /* User table actions */
+  .actions-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .btn-sm {
+    width: 100%;
+    margin: 2px 0;
+  }
+}
+
+/* ============================================
+   TABLET PORTRAIT (481px - 768px)
+   ============================================ */
+@media (min-width: 481px) and (max-width: 768px) {
+  .container {
+    max-width: 100%;
+    padding: 15px;
+  }
+
+  header {
+    flex-wrap: wrap;
+    padding: 20px 15px;
+  }
+
+  header h1 {
+    font-size: 1.5rem;
+  }
+
+  section {
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  /* Stats grid - 2 columns */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 15px;
+  }
+
+  /* Metrics - 2 columns */
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Forms - 2 columns where appropriate */
+  .form-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+  }
+
+  /* Tables */
+  table {
+    font-size: 13px;
+  }
+
+  th, td {
+    padding: 10px 8px;
+  }
+
+  /* Charts side by side */
+  .charts-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+  }
+
+  .chart-container {
+    height: 280px;
+  }
+
+  /* Touch-friendly buttons */
+  button {
+    min-height: 44px;
+    padding: 12px 20px;
+  }
+}
+
+/* ============================================
+   TABLET LANDSCAPE / SMALL DESKTOP (769px - 1024px)
+   ============================================ */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .container {
+    max-width: 95%;
+    padding: 20px;
+  }
+
+  /* Stats grid - 3 columns */
+  .stats-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+
+  /* Metrics - 3 columns */
+  .metrics-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+
+  /* Charts - 2 columns */
+  .charts-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
+  /* Forms */
+  .form-row {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+}
+
+/* ============================================
+   IPAD SPECIFIC (iPad Pro, Air, Mini)
+   ============================================ */
+@media only screen 
+  and (min-device-width: 768px) 
+  and (max-device-width: 1024px) 
+  and (-webkit-min-device-pixel-ratio: 2) {
+  
+  /* iPad optimizations */
+  body {
+    font-size: 15px;
+  }
+
+  .container {
+    max-width: 95%;
+    padding: 25px;
+  }
+
+  header h1 {
+    font-size: 2rem;
+  }
+
+  section {
+    padding: 25px;
+  }
+
+  /* Larger touch targets for iPad */
+  button {
+    min-height: 48px;
+    font-size: 16px;
+  }
+
+  input, select {
+    min-height: 48px;
+    font-size: 16px;
+  }
+
+  /* Stats - 4 columns on iPad landscape */
+  @media (orientation: landscape) {
+    .stats-grid {
+      grid-template-columns: repeat(4, 1fr) !important;
+    }
+
+    .metrics-grid {
+      grid-template-columns: repeat(4, 1fr) !important;
+    }
+
+    .charts-row {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  /* Stats - 2 columns on iPad portrait */
+  @media (orientation: portrait) {
+    .stats-grid {
+      grid-template-columns: repeat(2, 1fr) !important;
+    }
+
+    .metrics-grid {
+      grid-template-columns: repeat(2, 1fr) !important;
+    }
+
+    .charts-row {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+/* ============================================
+   LANDSCAPE MODE OPTIMIZATIONS
+   ============================================ */
+@media (max-height: 500px) and (orientation: landscape) {
+  header {
+    padding: 10px 15px;
+  }
+
+  header h1 {
+    font-size: 1.2rem;
+  }
+
+  section {
+    padding: 15px;
+    margin-bottom: 15px;
+  }
+
+  .stats-grid,
+  .metrics-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 10px;
+  }
+}
+
+/* ============================================
+   TOUCH IMPROVEMENTS
+   ============================================ */
+
+/* Larger touch targets */
+a, button, input[type="submit"], input[type="button"], select {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Better active states for touch */
+button:active,
+a:active {
+  transform: scale(0.98);
+  opacity: 0.8;
+}
+
+/* Disable hover effects on touch devices */
+@media (hover: none) {
+  button:hover,
+  a:hover {
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+/* ============================================
+   SCANNER PAGE MOBILE OPTIMIZATIONS
+   ============================================ */
+@media (max-width: 768px) {
+  .scanner-container {
+    padding: 10px;
+  }
+
+  .scanner-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .scanner-section {
+    padding: 15px;
+    margin-bottom: 15px;
+  }
+
+  #qr-reader {
+    width: 100%;
+    max-width: 100%;
+    height: 300px;
+  }
+
+  .btn-scan,
+  .btn-stop,
+  .btn-submit,
+  .btn-action {
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+    margin: 5px 0;
+  }
+
+  .input-group {
+    flex-direction: column;
+  }
+
+  .input-group input {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  .action-buttons {
+    gap: 10px;
+  }
+
+  .result-card {
+    padding: 15px;
+  }
+
+  .info-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+}
+
+/* ============================================
+   LOGIN PAGE MOBILE
+   ============================================ */
+@media (max-width: 480px) {
+  .login-container {
+    padding: 10px;
+  }
+
+  .login-card {
+    padding: 25px 20px;
+    margin: 0;
+    border-radius: 12px;
+  }
+
+  .login-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .app-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .input-wrapper input {
+    font-size: 16px;
+    padding: 12px 12px 12px 45px;
+  }
+
+  .login-button {
+    font-size: 16px;
+    padding: 14px;
+  }
+
+  .scanner-link {
+    padding: 12px;
+    font-size: 14px;
+  }
+}
+
+/* ============================================
+   PRINT STYLES (Optional)
+   ============================================ */
+@media print {
+  .user, button, .btn-download, .stats-controls {
+    display: none !important;
+  }
+
+  table {
+    font-size: 10px;
+  }
+
+  .container {
+    max-width: 100%;
+  }
+}
+
+/* ============================================
+   ACCESSIBILITY IMPROVEMENTS
+   ============================================ */
+
+/* Focus visible for keyboard navigation */
+*:focus-visible {
+  outline: 3px solid #106EBE;
+  outline-offset: 2px;
+}
+
+/* Skip to main content link */
+.skip-to-main {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: #106EBE;
+  color: white;
+  padding: 8px;
+  z-index: 100;
+}
+
+.skip-to-main:focus {
+  top: 0;
+}
+
+/* Reduced motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Dark mode support (if needed) */
+@media (prefers-color-scheme: dark) {
+  /* Add dark mode styles here if desired */
+}
+
+/* ============================================
+   PERFORMANCE OPTIMIZATIONS
+   ============================================ */
+
+/* GPU acceleration for animations */
+button,
+.card,
+.scanner-section {
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Optimize images for mobile */
+img {
+  max-width: 100%;
+  height: auto;
+  image-rendering: -webkit-optimize-contrast;
+}
