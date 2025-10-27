@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>UBT - Frontend (Static)</title>
+    <style>
+      body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;margin:0;padding:40px;color:#222;background:#f7f7fb}
+      .card{max-width:820px;margin:40px auto;padding:28px;border-radius:8px;background:#fff;border:1px solid #e6e9ef}
+      h1{margin-top:0}
+      a.button{display:inline-block;margin-top:16px;padding:10px 14px;background:#2563eb;color:#fff;border-radius:6px;text-decoration:none}
+      code{background:#f3f4f6;padding:2px 6px;border-radius:4px}
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>UBT - Frontend (Static)</h1>
+      <p>Anda sedang melihat versi static dari aplikasi. Aplikasi utama menggunakan <code>Express</code> dan <code>SQLite</code> sehingga membutuhkan backend yang berjalan terus (tidak bisa hanya di Vercel Serverless).</p>
+
+      <h3>Apa masalahnya?</h3>
+      <p>Vercel menunjukkan 404 karena tidak ada berkas <code>index.html</code> pada root static. Repositori berisi banyak template EJS (views) yang dirender oleh server — sehingga halaman dinamis tidak tersedia di deploy static.</p>
+
+      <h3>Apa yang bisa dilakukan sekarang</h3>
+      <ul>
+        <li>Deploy frontend static ke Vercel (sudah): file ini mencegah 404 dan memberi informasi kepada pengunjung.</li>
+        <li>Deploy backend (Express + SQLite + socket.io) ke layanan yang mendukung proses Node panjang dan storage writable, mis. <strong>Render</strong>, <strong>Railway</strong>, atau <strong>Fly</strong>. Setelah backend online, atur environment variable di Vercel: <code>PUBLIC_API_URL</code> → URL backend.</li>
+      </ul>
+
+      <a class="button" href="https://github.com/rizzdkp/UBT" target="_blank">Buka repo di GitHub</a>
+      <a class="button" style="background:#10b981;margin-left:8px" href="/manifest.json">Cek manifest</a>
+
+      <h4 style="margin-top:22px">Butuh bantuan?</h4>
+      <p>Jika Anda mau, saya bisa:</p>
+      <ol>
+        <li>Menyiapkan panduan cepat deploy backend ke Render (termasuk opsi persistent disk).</li>
+        <li>Migrasi sebagian ke serverless (lebih besar pekerjaannya).</li>
+      </ol>
+    </div>
+  </body>
+</html>
