@@ -14,3 +14,12 @@ services:
         generateValue: true
       - key: SESSION_SECRET
         generateValue: true
+    # Persistent disk for SQLite database. Render will create and mount this disk.
+    disks:
+      - name: data-disk
+        sizeGb: 5
+        mountPath: /data
+    # Make the disk path available to the app via env var
+    envVars:
+      - key: DATA_DIR
+        value: /data

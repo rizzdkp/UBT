@@ -160,3 +160,18 @@ Jika ada masalah, cek:
 ---
 
 **Selamat! Aplikasi Anda sekarang online dan bisa diakses dari mana saja! 🎉**
+
+---
+
+## 🗄️ Persistent disk untuk SQLite (opsional tapi direkomendasikan)
+
+Untuk menyimpan `data.db` secara persisten antar-deploy, gunakan Render Disks. Langkah singkat:
+
+1. Buka service Anda di Render → Settings → Disks → Add Disk.
+2. Isi: Name: `data-disk`, Size: `5` GB (contoh), Mount path: `/data`.
+3. Di Service → Environment, tambahkan env var: `DATA_DIR = /data`.
+4. Pastikan `render.yaml` di repo (atau dashboard) menunjuk mount yang sama. Repo ini sudah menyertakan contoh `render.yaml` yang menambahkan disk dan `DATA_DIR`.
+
+Di kode aplikasi (`server.js`) telah diperbarui untuk membaca `DATA_DIR` dan menyimpan `data.db` di lokasi itu. Setelah disk di-mount dan service dideploy ulang, file database akan berada di `/data/data.db`.
+
+Jika Anda ingin saya siapkan semuanya (commit + panduan langkah demi langkah screenshot), bilang saja — saya akan bantu deploy dan verifikasi logs.

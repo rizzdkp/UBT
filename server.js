@@ -170,8 +170,12 @@ function logActivity(action, targetType = 'system', targetId = null, details = n
   };
 }
 
-// Simple DB (SQLite) in file
-const db = new sqlite3.Database(path.join(__dirname, 'data.db'));
+// Simple DB (SQLite) in file. Use DATA_DIR env var (e.g. mounted persistent disk)
+const dbDir = process.env.DATA_DIR || process.env.DATA_PATH || path.join(__dirname);
+try { fs.mkdirSync(dbDir, { recursive: true }); } catch (e) { /* ignore */ }
+const dbPath = path.join(dbDir, 'data.db');
+console.log('Using SQLite DB at:', dbPath);
+const db = new sqlite3.Database(dbPath);
 db.serialize(() => {
   // Partners table (Mitra)
   db.run(
