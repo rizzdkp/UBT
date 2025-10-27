@@ -49,6 +49,30 @@ File konfigurasi tersedia:
 - `render.yaml` - Render configuration
 - `Procfile` - Railway/Heroku configuration
 
+### Vercel (Frontend-only)
+
+If you want to deploy only the frontend/static assets to Vercel (recommended when keeping the Express + SQLite backend on a separate host), you can publish the `public/` directory as a static site.
+
+Key points:
+- This is a frontend-only deployment — server-side features (Express routes, SQLite database, socket.io) will NOT run on Vercel.
+- Use Vercel for fast CDN delivery of `public/` (PWA assets, client JS, CSS, service worker).
+
+Quick steps:
+
+1. Push code to GitHub (already done).
+2. On Vercel, create a new project and import this repository.
+3. In Project Settings set:
+    - Framework Preset: Other
+    - Build Command: (leave empty)
+    - Output Directory / Publish Directory: `public`
+4. Optionally add an Environment Variable `PUBLIC_API_URL` pointing to your backend API (e.g. `https://api.example.com`) so client-side code can call the backend.
+
+You can also use the included `vercel.json` which configures Vercel to serve the `public/` directory as a static site.
+
+Example: if you host the backend on Render/Railway at `https://api.example.com`, set `PUBLIC_API_URL=https://api.example.com` in Vercel env vars and update any client-side AJAX to use `process.env.PUBLIC_API_URL` (or injected value) as the base URL.
+
+If you want the full Express app (including SQLite and socket.io) deployed, host the backend on a service that supports long-lived Node processes and writable persistent storage (Render, Fly, or a VPS). See the Render section above for guidance.
+
 ## 🗂️ Project Structure
 
 ```
