@@ -2,6 +2,7 @@ const express = require('express');
 const fs = require('fs');
 const session = require('express-session');
 const bodyParser = require('body-parser');
+const cors = require('cors');
 const path = require('path');
 const bwipjs = require('bwip-js');
 const sqlite3 = require('sqlite3').verbose();
@@ -66,6 +67,10 @@ app.get('/manifest.json', (req, res) => {
 });
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
+// Enable CORS for requests from frontend. Set PUBLIC_FRONTEND_ORIGIN to the
+// exact origin of your frontend (e.g. https://your-frontend.vercel.app).
+// Default is '*' to allow development/testing. For production, set a specific origin.
+app.use(cors({ origin: process.env.PUBLIC_FRONTEND_ORIGIN || '*' }));
 
 // Global error logging
 const errorLogPath = path.join(__dirname, 'error.log');
