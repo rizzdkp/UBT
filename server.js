@@ -202,7 +202,15 @@ db.serialize(() => {
       const hasPartnerId = columns.some(col => col.name === 'partner_id');
       if (!hasPartnerId) {
         console.log('Adding partner_id column to protocols table...');
-        db.run('ALTER TABLE protocols ADD COLUMN partner_id INTEGER REFERENCES partners(id)');
+        db.run('ALTER TABLE protocols ADD COLUMN partner_id INTEGER REFERENCES partners(id)', (alterErr) => {
+          if (alterErr) {
+            console.log('Note: Could not add partner_id column (may already exist):', alterErr.message);
+          } else {
+            console.log('Successfully added partner_id column to protocols table');
+          }
+        });
+      } else {
+        console.log('partner_id column already exists in protocols table');
       }
     }
   });
