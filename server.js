@@ -817,7 +817,7 @@ app.post('/users', requireAuth, requireRole('admin'), logActivity('create_user',
 app.post('/users/:id/toggle-status', requireAuth, requireRole('admin'), (req, res) => {
   const { id } = req.params;
   
-  db.get('SELECT is_active FROM users WHERE id = ?', [id], (err, user) => {
+  db.get('SELECT is_active, username FROM users WHERE id = ?', [id], (err, user) => {
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
@@ -833,17 +833,26 @@ app.post('/users/:id/toggle-status', requireAuth, requireRole('admin'), (req, re
       db.run(
         `INSERT INTO activity_logs (user_id, action, target_type, target_id, details)
          VALUES (?, ?, ?, ?, ?)`,
-        [req.user.id, newStatus ? 'activate_user' : 'deactivate_user', 'user', id, `User ${newStatus ? 'activated' : 'deactivated'}`]
+        [req.user.id, newStatus ? 'activate_user' : 'deactivate_user', 'user', id, `User ${user.username} ${newStatus ? 'activated' : 'deactivated'} by admin`]
       );
       
-      res.redirect('/users');
+      res.json({ 
+        success: true, 
+        message: `User ${newStatus ? 'activated' : 'deactivated'} successfully` 
+      });
     });
   });
 });
 
 app.post('/users/:id/reset-password', requireAuth, requireRole('admin'), (req, res) => {
   const { id } = req.params;
-  const newPassword = Math.random().toString(36).slice(-10); // Generate random password
+  const { newPassword } = req.body;
+  
+  // Validate password
+  if (!newPassword || newPassword.length < 6) {
+    return res.status(400).json({ error: 'Password must be at least 6 characters long' });
+  }
+  
   const passwordHash = bcrypt.hashSync(newPassword, 10);
   
   db.run('UPDATE users SET password_hash = ? WHERE id = ?', [passwordHash, id], (err) => {
@@ -855,14 +864,12 @@ app.post('/users/:id/reset-password', requireAuth, requireRole('admin'), (req, r
     db.run(
       `INSERT INTO activity_logs (user_id, action, target_type, target_id, details)
        VALUES (?, ?, ?, ?, ?)`,
-      [req.user.id, 'reset_password', 'user', id, 'Password reset by admin']
+      [req.user.id, 'reset_password', 'user', id, `Password reset by admin (${req.user.username})`]
     );
     
-    // In production, send email with new password
-    // For now, just show in response
     res.json({ 
       success: true, 
-      message: `Password reset successfully. New password: ${newPassword}` 
+      message: 'Password reset successfully' 
     });
   });
 });

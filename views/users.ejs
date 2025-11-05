@@ -15,6 +15,128 @@
     
     <link rel="stylesheet" href="/styles.css" />
     <link rel="stylesheet" href="/mobile-responsive.css" />
+    <style>
+        /* Modal Styles */
+        .modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+        
+        .modal-close {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            font-size: 28px;
+            font-weight: bold;
+            color: #999;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        
+        .modal-close:hover {
+            color: #333;
+        }
+        
+        .modal-content h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #106EBE;
+        }
+        
+        .modal-content p {
+            margin-bottom: 20px;
+            color: #555;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        
+        /* Activity List Styles */
+        .activity-list {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        .activity-item {
+            background: #f8f9fa;
+            border-left: 4px solid #106EBE;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+        
+        .activity-header {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .activity-header strong {
+            color: #106EBE;
+            min-width: 120px;
+        }
+        
+        .activity-action {
+            background: #e9ecef;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #495057;
+        }
+        
+        .activity-time {
+            margin-left: auto;
+            font-size: 12px;
+            color: #6c757d;
+        }
+        
+        .activity-details {
+            font-size: 13px;
+            color: #666;
+            padding-left: 5px;
+        }
+        
+        @media (max-width: 768px) {
+            .modal-content {
+                width: 95%;
+                padding: 20px;
+            }
+            
+            .activity-header {
+                flex-wrap: wrap;
+            }
+            
+            .activity-time {
+                margin-left: 0;
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -114,16 +236,17 @@
                             </td>
                             <td class="actions-cell">
                                 <% if (user.role === 'admin' && u.id !== user.id) { %>
-                                    <form method="post" action="/users/<%= u.id %>/toggle-status" style="display: inline;">
-                                        <button type="submit" class="btn-sm <%= u.is_active ? 'btn-warning' : 'btn-success' %>">
-                                            <%= u.is_active ? 'Deactivate' : 'Activate' %>
-                                        </button>
-                                    </form>
-                                    <form method="post" action="/users/<%= u.id %>/reset-password" style="display: inline;">
-                                        <button type="submit" class="btn-sm btn-info">Reset Pass</button>
-                                    </form>
+                                    <button type="button" 
+                                            onclick="toggleUserStatus(<%= u.id %>, <%= u.is_active %>)" 
+                                            class="btn-sm <%= u.is_active ? 'btn-warning' : 'btn-success' %>">
+                                        <%= u.is_active ? 'DEACTIVATE' : 'ACTIVATE' %>
+                                    </button>
+                                    <button type="button" 
+                                            onclick="showResetPasswordModal(<%= u.id %>, '<%= u.username %>')" 
+                                            class="btn-sm btn-info">
+                                        RESET PASS
+                                    </button>
                                 <% } %>
-                                <a href="/users/<%= u.id %>/activity" class="btn-sm btn-secondary">Activity</a>
                             </td>
                         </tr>
                         <% }) %>
@@ -132,9 +255,33 @@
             </div>
         </section>
 
+        <!-- Reset Password Modal -->
+        <div id="resetPasswordModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <span class="modal-close" onclick="closeResetPasswordModal()">&times;</span>
+                <h3>🔑 Reset Password</h3>
+                <p>Set new password for user: <strong id="resetUsername"></strong></p>
+                <form id="resetPasswordForm" onsubmit="submitResetPassword(event)">
+                    <input type="hidden" id="resetUserId" />
+                    <div class="form-group">
+                        <label>New Password *</label>
+                        <input type="password" id="newPassword" required minlength="6" placeholder="Enter new password (min 6 characters)" />
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm New Password *</label>
+                        <input type="password" id="confirmNewPassword" required minlength="6" placeholder="Confirm new password" />
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" onclick="closeResetPasswordModal()" class="btn-secondary">Cancel</button>
+                        <button type="submit" class="btn-primary">Reset Password</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <!-- Activity Summary -->
         <section>
-            <h2>Recent Activity</h2>
+            <h2>📋 Recent Activity</h2>
             <div class="activity-list">
                 <% recentActivity.forEach(function(activity) { %>
                 <div class="activity-item">
@@ -163,23 +310,114 @@
     </div>
 
     <script>
-        // Form validation
-        document.querySelector('.user-form').addEventListener('submit', function(e) {
-            const password = document.querySelector('input[name="password"]').value;
-            const confirmPassword = document.querySelector('input[name="confirm_password"]').value;
+        // Form validation for new user
+        const userForm = document.querySelector('.user-form');
+        if (userForm) {
+            userForm.addEventListener('submit', function(e) {
+                const password = document.querySelector('input[name="password"]').value;
+                const confirmPassword = document.querySelector('input[name="confirm_password"]').value;
+                
+                if (password !== confirmPassword) {
+                    e.preventDefault();
+                    alert('Passwords do not match!');
+                    return false;
+                }
+                
+                if (password.length < 6) {
+                    e.preventDefault();
+                    alert('Password must be at least 6 characters long!');
+                    return false;
+                }
+            });
+        }
+        
+        // Show Reset Password Modal
+        function showResetPasswordModal(userId, username) {
+            document.getElementById('resetUserId').value = userId;
+            document.getElementById('resetUsername').textContent = username;
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmNewPassword').value = '';
+            document.getElementById('resetPasswordModal').style.display = 'flex';
+        }
+        
+        // Close Reset Password Modal
+        function closeResetPasswordModal() {
+            document.getElementById('resetPasswordModal').style.display = 'none';
+        }
+        
+        // Submit Reset Password
+        function submitResetPassword(event) {
+            event.preventDefault();
             
-            if (password !== confirmPassword) {
-                e.preventDefault();
+            const userId = document.getElementById('resetUserId').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmNewPassword').value;
+            
+            if (newPassword !== confirmPassword) {
                 alert('Passwords do not match!');
                 return false;
             }
             
-            if (password.length < 6) {
-                e.preventDefault();
+            if (newPassword.length < 6) {
                 alert('Password must be at least 6 characters long!');
                 return false;
             }
-        });
+            
+            // Send reset password request
+            fetch(`/users/${userId}/reset-password`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ newPassword: newPassword })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('✅ Password reset successfully!');
+                    closeResetPasswordModal();
+                } else {
+                    alert('❌ Error: ' + (data.error || 'Failed to reset password'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('❌ Error resetting password. Please try again.');
+            });
+        }
+        
+        // Toggle User Status
+        function toggleUserStatus(userId, isActive) {
+            const action = isActive ? 'deactivate' : 'activate';
+            if (!confirm(`Are you sure you want to ${action} this user?`)) {
+                return;
+            }
+            
+            fetch(`/users/${userId}/toggle-status`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(`✅ User ${action}d successfully!`);
+                    window.location.reload();
+                } else {
+                    alert('❌ Error: ' + (data.error || 'Failed to update user status'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('❌ Error updating user status. Please try again.');
+            });
+        }
+        
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('resetPasswordModal');
+            if (event.target === modal) {
+                closeResetPasswordModal();
+            }
+        }
     </script>
 </body>
 </html>
