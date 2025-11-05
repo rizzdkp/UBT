@@ -675,69 +675,9 @@
         </div>
       </section>
 
-      <!-- Live Stock Tracking Section -->
+      <!-- Live Stock & Analytics Section -->
       <section>
-        <h2>📦 Live Stock Tracking</h2>
-        <div class="stock-summary">
-          <div class="stock-card">
-            <div class="stock-icon">📊</div>
-            <div class="stock-content">
-              <div class="stock-number"><%= stock.total_allocated || 0 %></div>
-              <div class="stock-label">Total Allocated</div>
-            </div>
-          </div>
-          <div class="stock-card">
-            <div class="stock-icon">✅</div>
-            <div class="stock-content">
-              <div class="stock-number"><%= stock.total_used || 0 %></div>
-              <div class="stock-label">Used</div>
-            </div>
-          </div>
-          <div class="stock-card">
-            <div class="stock-icon">📦</div>
-            <div class="stock-content">
-              <div class="stock-number"><%= stock.total_available || 0 %></div>
-              <div class="stock-label">Available</div>
-            </div>
-          </div>
-          <div class="stock-card">
-            <div class="stock-icon">🏢</div>
-            <div class="stock-content">
-              <div class="stock-number"><%= stock.active_partners || 0 %></div>
-              <div class="stock-label">Active Partners</div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="stock-details">
-          <h3>Stock by Partner</h3>
-          <div id="stockTable">
-            <table class="stock-table">
-              <thead>
-                <tr>
-                  <th>Partner</th>
-                  <th>Type</th>
-                  <th>Province</th>
-                  <th>Allocated</th>
-                  <th>Used</th>
-                  <th>Available</th>
-                  <th>Usage %</th>
-                  <th>Last Updated</th>
-                </tr>
-              </thead>
-              <tbody id="stockTableBody">
-                <tr>
-                  <td colspan="8" class="loading">Loading stock data...</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <!-- Advanced Analytics Section -->
-      <section>
-        <h2>📈 Advanced Analytics</h2>
+        <h2>📊 Live Stock & Analytics</h2>
         
         <!-- Performance Metrics -->
         <div class="metrics-grid">
@@ -780,7 +720,7 @@
 
         <!-- Partner Performance Table -->
         <div class="analytics-section">
-          <h3>🏆 Top Partner Performance</h3>
+          <h3>🏆 Partner Performance & Stock</h3>
           <div class="partner-performance-table">
             <table class="performance-table">
               <thead>
@@ -1173,8 +1113,10 @@
           // Hide form
           document.getElementById('cancelPartnerBtn').click();
           
-          // Refresh stock data
-          loadStockData();
+          // Reload page to refresh data
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500);
           
           showToast('Partner created successfully!', 'success');
         })
@@ -1184,68 +1126,10 @@
         });
       });
 
-      // Initialize Advanced Analytics Charts
+      // Initialize Analytics Charts
       document.addEventListener('DOMContentLoaded', function() {
         initializeCharts();
-        loadStockData();
       });
-      
-      // Load stock data
-      function loadStockData() {
-        fetch('/api/stock')
-          .then(response => response.json())
-          .then(stockData => {
-            const tbody = document.getElementById('stockTableBody');
-            tbody.innerHTML = '';
-            
-            if (stockData.length === 0) {
-              tbody.innerHTML = '<tr><td colspan="8" class="loading">No partners found</td></tr>';
-              return;
-            }
-            
-            stockData.forEach(partner => {
-              const allocated = partner.total_allocated || 0;
-              const used = partner.total_used || 0;
-              const available = partner.total_available || 0;
-              const usagePercent = allocated > 0 ? Math.round((used / allocated) * 100) : 0;
-              
-              let usageClass = 'low';
-              if (usagePercent > 75) usageClass = 'high';
-              else if (usagePercent > 50) usageClass = 'medium';
-              
-              const row = `
-                <tr>
-                  <td>
-                    <strong>${partner.name}</strong>
-                    <br><code>${partner.code}</code>
-                  </td>
-                  <td>
-                    <span class="type-badge type-${partner.type}">${partner.type.replace('_', ' ').toUpperCase()}</span>
-                  </td>
-                  <td>${partner.province_code}</td>
-                  <td><strong>${allocated}</strong></td>
-                  <td><strong>${used}</strong></td>
-                  <td><strong>${available}</strong></td>
-                  <td>
-                    <div class="usage-bar">
-                      <div class="usage-fill ${usageClass}" style="width: ${usagePercent}%"></div>
-                    </div>
-                    <small>${usagePercent}%</small>
-                  </td>
-                  <td>
-                    <small>${partner.last_updated ? new Date(partner.last_updated).toLocaleDateString('id-ID') : 'Never'}</small>
-                  </td>
-                </tr>
-              `;
-              tbody.innerHTML += row;
-            });
-          })
-          .catch(error => {
-            console.error('Error loading stock data:', error);
-            document.getElementById('stockTableBody').innerHTML = 
-              '<tr><td colspan="8" class="loading">Error loading stock data</td></tr>';
-          });
-      }
 
       function initializeCharts() {
         // Daily Trends Chart
