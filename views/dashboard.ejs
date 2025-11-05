@@ -478,7 +478,32 @@
   </head>
   <body>
     <div class="container">
+      <!-- Mobile Navigation Sidebar -->
+      <div class="mobile-nav-backdrop" id="mobileNavBackdrop"></div>
+      <div class="mobile-nav-overlay" id="mobileNav">
+        <div class="mobile-nav-content">
+          <div class="mobile-nav-user">
+            <strong><%= user.full_name || user %></strong>
+            <% if (user.role) { %><small><%= user.role %></small><% } %>
+          </div>
+          <nav class="navigation-links">
+            <a href="/dashboard">📊 Dashboard</a>
+            <a href="/partners">🏢 Partners</a>
+            <% if (user.role === 'admin') { %>
+              <a href="/users">👥 Users</a>
+            <% } %>
+            <a href="/scanner">📱 Scanner</a>
+            <a href="/logout" style="color: #e53e3e; font-weight: 600;">🚪 Logout</a>
+          </nav>
+        </div>
+      </div>
+
       <header>
+        <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle Menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
         <h1>Barcode Protocol Dashboard</h1>
         <div class="user">
           Logged in as <strong><%= user.full_name || user %></strong> 
@@ -1363,6 +1388,38 @@
               }
             }
           }
+        });
+      }
+
+      // Mobile Menu Toggle
+      const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+      const mobileNav = document.getElementById('mobileNav');
+      const mobileNavBackdrop = document.getElementById('mobileNavBackdrop');
+
+      if (mobileMenuToggle) {
+        mobileMenuToggle.addEventListener('click', function() {
+          this.classList.toggle('active');
+          mobileNav.classList.toggle('active');
+          mobileNavBackdrop.classList.toggle('active');
+          document.body.style.overflow = mobileNav.classList.contains('active') ? 'hidden' : '';
+        });
+
+        mobileNavBackdrop.addEventListener('click', function() {
+          mobileMenuToggle.classList.remove('active');
+          mobileNav.classList.remove('active');
+          this.classList.remove('active');
+          document.body.style.overflow = '';
+        });
+
+        // Close menu on link click
+        const navLinks = mobileNav.querySelectorAll('a');
+        navLinks.forEach(link => {
+          link.addEventListener('click', function() {
+            mobileMenuToggle.classList.remove('active');
+            mobileNav.classList.remove('active');
+            mobileNavBackdrop.classList.remove('active');
+            document.body.style.overflow = '';
+          });
         });
       }
     </script>
