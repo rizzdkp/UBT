@@ -293,6 +293,11 @@ db.serialize(() => {
     )`
   );
   
+  // Migrate old roles to new roles
+  db.run(`UPDATE users SET role = 'operator' WHERE role = 'viewer'`, (err) => {
+    if (err) console.log('Role migration note:', err.message);
+  });
+  
   // Create default admin user if not exists
   db.get("SELECT id FROM users WHERE username = 'admin'", (err, row) => {
     if (!row) {
@@ -791,7 +796,7 @@ app.post('/users', requireAuth, requireRole('admin'), logActivity('create_user',
     return res.status(400).json({ error: 'Invalid email format' });
   }
   
-  if (!['viewer', 'operator', 'admin'].includes(role)) {
+  if (!['operator', 'distribusi', 'admin'].includes(role)) {
     return res.status(400).json({ error: 'Invalid role' });
   }
   
