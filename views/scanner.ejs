@@ -23,6 +23,17 @@
 <body>
     <div class="scanner-container">
         <header class="scanner-header">
+            <div class="header-top">
+                <% if (typeof user !== 'undefined') { %>
+                    <div class="user-info">
+                        Logged in as <strong><%= user.full_name || user.username %></strong>
+                        <% if (user.role === 'admin' || user.role === 'operator') { %>
+                            — <a href="/" class="back-link">📊 Dashboard</a>
+                        <% } %>
+                        | <a href="/logout" class="back-link">🚪 Logout</a>
+                    </div>
+                <% } %>
+            </div>
             <h1>📱 Protocol Scanner</h1>
             <p>Scan barcode untuk update status protocol</p>
         </header>

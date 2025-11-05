@@ -355,7 +355,7 @@ const provinces = [
   { code: 'PAB', name: 'Papua Barat' }
 ];
 
-app.get('/', requireAuth, logActivity('view_dashboard'), (req, res) => {
+app.get('/', requireAuth, requireRole('admin', 'operator'), logActivity('view_dashboard'), (req, res) => {
   const { period, start_date, end_date } = req.query;
   
   try {
@@ -703,7 +703,7 @@ app.post('/login', authLimiter, (req, res) => {
     req.session.user = ADMIN_USER;
     req.session.userId = 0; // Legacy admin ID
     console.log('Session after legacy login:', req.session);
-    return res.redirect('/');
+    return res.redirect('/'); // Legacy admin always goes to dashboard
   }
   
   // New user authentication
@@ -736,6 +736,11 @@ app.post('/login', authLimiter, (req, res) => {
     // Set session
     req.session.userId = user.id;
     req.session.user = user.username; // For backwards compatibility
+    
+    // Redirect based on role
+    if (user.role === 'distribusi') {
+      return res.redirect('/scanner');
+    }
     
     res.redirect('/');
   });
@@ -1066,8 +1071,8 @@ app.get('/api/stock', requireAuth, (req, res) => {
   );
 });
 
-// Create protocol form
-app.post('/protocols', ensureAuth, (req, res) => {
+// Create protocol form (admin and operator only)
+app.post('/protocols', requireAuth, requireRole('admin', 'operator'), logActivity('create_protocol'), (req, res) => {
   const { province, partner_id, quantity } = req.body;
   
   // Validate inputs
@@ -1149,7 +1154,7 @@ app.post('/protocols', ensureAuth, (req, res) => {
 });
 
 // Update status
-app.post('/protocols/:id/status', ensureAuth, (req, res) => {
+app.post('/protocols/:id/status', requireAuth, requireRole('admin', 'operator'), (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
   
@@ -1248,8 +1253,8 @@ app.get('/download/barcode/:code.png', ensureAuth, (req, res) => {
   }
 });
 
-// Public endpoint to lookup code (simulate scan) - returns JSON
-app.get('/scan/:code', (req, res) => {
+// Lookup code endpoint - returns JSON (authenticated users only)
+app.get('/scan/:code', requireAuth, (req, res) => {
   const { code } = req.params;
   db.get('SELECT * FROM protocols WHERE code = ?', [code], (err, row) => {
     if (err) return res.status(500).json({ error: 'DB error' });
@@ -1269,13 +1274,13 @@ app.get('/scan/:code', (req, res) => {
   });
 });
 
-// Public scanner page (no auth required)
-app.get('/scanner', (req, res) => {
-  res.render('scanner');
+// Scanner page (accessible by all authenticated users)
+app.get('/scanner', requireAuth, (req, res) => {
+  res.render('scanner', { user: req.user });
 });
 
-// API endpoint to confirm status change from scanner
-app.post('/api/confirm-usage/:code', (req, res) => {
+// API endpoint to confirm status change from scanner (all authenticated users)
+app.post('/api/confirm-usage/:code', requireAuth, (req, res) => {
   const { code } = req.params;
   const { action } = req.body; // 'mark_terpakai' or 'mark_delivered'
   
@@ -1290,6 +1295,17 @@ app.post('/api/confirm-usage/:code', (req, res) => {
     // Update status
     db.run('UPDATE protocols SET status = ? WHERE code = ?', [newStatus, code], function (err) {
       if (err) return res.status(500).json({ error: 'Failed to update status' });
+      
+      // Log activity
+      if (req.user && req.user.id) {
+        const ip = req.ip || req.connection.remoteAddress;
+        const userAgent = req.get('User-Agent');
+        db.run(
+          `INSERT INTO activity_logs (user_id, action, target_type, target_id, details, ip_address, user_agent)
+           VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          [req.user.id, `scan_${newStatus}`, 'protocol', code, `Scanned and marked as ${newStatus}`, ip, userAgent]
+        );
+      }
       
       // Emit real-time update to dashboard
       io.emit('status_updated', { 
