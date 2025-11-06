@@ -59,11 +59,6 @@ app.set('views', path.join(__dirname, 'views'));
 // Static files
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Service Worker route (must be served from root for PWA)
-app.get('/sw.js', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'sw.js'));
-});
-
 // Manifest route
 app.get('/manifest.json', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'manifest.json'));
