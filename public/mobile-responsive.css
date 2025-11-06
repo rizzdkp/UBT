@@ -466,21 +466,44 @@ a:active {
 @media (max-width: 768px) {
   .scanner-container {
     padding: 10px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .scanner-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: white;
+    border-radius: 12px;
   }
 
   .scanner-header h1 {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
+    margin: 0;
   }
 
   .scanner-section {
     padding: 15px;
     margin-bottom: 15px;
+    background: white;
+    border-radius: 12px;
   }
 
   #qr-reader {
-    width: 100%;
-    max-width: 100%;
-    height: 300px;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 300px !important;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  #qr-reader video {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
   }
 
   .btn-scan,
@@ -488,32 +511,85 @@ a:active {
   .btn-submit,
   .btn-action {
     width: 100%;
-    padding: 14px;
+    padding: 16px;
     font-size: 16px;
-    margin: 5px 0;
+    margin: 8px 0;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 50px;
   }
 
   .input-group {
     flex-direction: column;
+    width: 100%;
   }
 
   .input-group input {
     width: 100%;
     margin-bottom: 10px;
+    padding: 14px;
+    font-size: 16px;
+    border-radius: 10px;
   }
 
   .action-buttons {
+    display: flex;
+    flex-direction: column;
     gap: 10px;
+    width: 100%;
   }
 
   .result-card {
     padding: 15px;
+    border-radius: 12px;
+    background: #f8fafc;
+    margin-bottom: 15px;
   }
 
   .info-row {
     flex-direction: column;
     align-items: flex-start;
-    gap: 5px;
+    gap: 8px;
+    padding: 10px 0;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .info-row:last-child {
+    border-bottom: none;
+  }
+
+  .info-row strong {
+    font-size: 13px;
+    color: #718096;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .info-row span {
+    font-size: 15px;
+    color: #2d3748;
+    font-weight: 600;
+  }
+
+  /* Scanner camera controls */
+  #html5-qrcode-button-camera-start,
+  #html5-qrcode-button-camera-stop {
+    width: 100% !important;
+    padding: 14px !important;
+    font-size: 16px !important;
+    border-radius: 10px !important;
+    margin: 10px 0 !important;
+  }
+
+  #html5-qrcode-select-camera {
+    width: 100% !important;
+    padding: 12px !important;
+    font-size: 16px !important;
+    border-radius: 10px !important;
+    margin-bottom: 10px !important;
   }
 }
 
@@ -523,12 +599,15 @@ a:active {
 @media (max-width: 480px) {
   .login-background {
     padding: 15px;
-    align-items: stretch;
+    align-items: center;
+    display: flex;
+    min-height: 100vh;
   }
 
   .login-container {
     padding: 0;
     max-width: 100%;
+    width: 100%;
   }
 
   .login-card {
@@ -540,6 +619,7 @@ a:active {
 
   .login-header {
     margin-bottom: 30px;
+    text-align: center;
   }
 
   .login-header h1 {
@@ -552,9 +632,10 @@ a:active {
   }
 
   .app-icon {
-    width: 48px;
-    height: 48px;
-    margin-bottom: 16px;
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 16px;
+    display: block;
   }
 
   .login-form {
@@ -570,17 +651,20 @@ a:active {
     margin-bottom: 8px;
     display: block;
     font-weight: 600;
+    text-align: left;
   }
 
   .input-wrapper {
     position: relative;
     width: 100%;
+    display: flex;
+    align-items: center;
   }
 
   .input-wrapper input {
     width: 100%;
     font-size: 16px;
-    padding: 14px 14px 14px 48px;
+    padding: 14px 50px 14px 48px !important;
     border: 2px solid #e2e8f0;
     border-radius: 10px;
     box-sizing: border-box;
@@ -592,15 +676,31 @@ a:active {
     top: 50%;
     transform: translateY(-50%);
     color: #718096;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    pointer-events: none;
+    z-index: 2;
   }
 
   .password-toggle {
     position: absolute;
-    right: 12px;
+    right: 8px;
     top: 50%;
     transform: translateY(-50%);
-    min-height: 40px;
-    min-width: 40px;
+    min-height: 44px;
+    min-width: 44px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 3;
   }
 
   .login-actions {
@@ -613,6 +713,9 @@ a:active {
   .remember-me {
     order: 1;
     justify-content: flex-start;
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
 
   .login-button {
@@ -622,12 +725,26 @@ a:active {
     padding: 16px;
     font-weight: 600;
     border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
   }
 
   .scanner-link {
     padding: 14px;
     font-size: 15px;
     margin-top: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-align: center;
+  }
+
+  .scanner-link .scanner-subtitle {
+    display: block;
+    width: 100%;
   }
 
   .error-message {
@@ -729,38 +846,41 @@ a:active {
 @media (max-width: 768px) {
   /* Hamburger menu button */
   .mobile-menu-toggle {
-    display: flex;
+    display: flex !important;
     flex-direction: column;
     justify-content: space-around;
-    width: 32px;
-    height: 28px;
+    width: 36px;
+    height: 32px;
     background: transparent;
     border: none;
     cursor: pointer;
-    padding: 0;
-    z-index: 1000;
+    padding: 4px;
+    z-index: 1001;
     position: relative;
+    flex-shrink: 0;
   }
 
   .mobile-menu-toggle span {
-    width: 32px;
+    width: 100%;
     height: 3px;
     background: #106EBE;
     border-radius: 3px;
     transition: all 0.3s ease;
-    transform-origin: 1px;
+    transform-origin: center;
+    display: block;
   }
 
   .mobile-menu-toggle.active span:nth-child(1) {
-    transform: rotate(45deg);
+    transform: rotate(45deg) translateY(9px);
   }
 
   .mobile-menu-toggle.active span:nth-child(2) {
     opacity: 0;
+    transform: translateX(-20px);
   }
 
   .mobile-menu-toggle.active span:nth-child(3) {
-    transform: rotate(-45deg);
+    transform: rotate(-45deg) translateY(-9px);
   }
 
   /* Mobile navigation overlay */
@@ -856,16 +976,25 @@ a:active {
 
   /* Header adjustments for hamburger */
   header {
-    display: flex;
+    display: flex !important;
     flex-direction: row !important;
-    align-items: center;
-    justify-content: space-between;
+    align-items: center !important;
+    justify-content: flex-start !important;
     padding: 15px !important;
+    gap: 15px !important;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   }
 
   header h1 {
     flex: 1;
     margin: 0 !important;
+    font-size: 1.3rem !important;
+    line-height: 1.2 !important;
+    text-align: left;
   }
 
   header .user {
@@ -875,6 +1004,7 @@ a:active {
   /* Show hamburger only on mobile */
   .mobile-menu-toggle {
     display: flex !important;
+    order: -1; /* Put hamburger first (left side) */
   }
 
   .mobile-nav-overlay,
@@ -901,6 +1031,7 @@ a:active {
     color: #2d3748;
     font-weight: 600;
     transition: all 0.2s;
+    gap: 12px;
   }
 
   .dashboard-nav a:active {
@@ -966,6 +1097,35 @@ a:active {
     margin-bottom: 4px;
   }
 
+  /* Mobile icon improvements - prevent emoji from being too large */
+  .metric-icon,
+  .stock-icon {
+    font-size: 24px !important;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .navigation-links a {
+    font-size: 15px !important;
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Prevent icon overflow in nav */
+  .navigation-links a::before {
+    content: '';
+    display: inline-block;
+    width: 24px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
   /* Show hamburger only on mobile */
   .mobile-menu-toggle {
     display: flex !important;
@@ -974,6 +1134,23 @@ a:active {
   .mobile-nav-overlay,
   .mobile-nav-backdrop {
     display: block;
+  }
+
+  /* Fix emoji alignment everywhere */
+  body {
+    font-feature-settings: "liga" 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Constrain all emoji/icon sizes */
+  section h2::before,
+  .metric-card .metric-icon,
+  .stat-icon,
+  button::before {
+    font-size: inherit;
+    line-height: 1;
+    vertical-align: middle;
   }
 }
 
