@@ -59,31 +59,101 @@
               z-index: 2;
             }
             .password-toggle:hover { background: #edf2f7; }
-            .login-actions { display:flex; align-items:center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-            .remember-me { display:flex; align-items:center; gap:8px; color:#4a5568; font-size: 14px; }
-            .remember-me input { width: auto; min-width: auto; }
+            .login-actions { 
+              display: flex; 
+              align-items: center; 
+              justify-content: space-between; 
+              gap: 16px; 
+              flex-wrap: wrap;
+              margin-top: 20px;
+            }
+            .remember-me { 
+              display: flex; 
+              align-items: center; 
+              gap: 10px; 
+              color: #4a5568; 
+              font-size: 14px;
+              cursor: pointer;
+              user-select: none;
+            }
+            .remember-me input { 
+              width: 18px; 
+              height: 18px;
+              min-width: 18px;
+              margin: 0;
+              cursor: pointer;
+              flex-shrink: 0;
+            }
             
             /* Mobile-specific fixes */
             @media (max-width: 480px) {
+              .login-card {
+                padding: 32px 24px;
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+              }
+              
               .input-wrapper input {
-                padding: 14px 50px 14px 48px;
-                min-height: 48px;
+                padding: 14px 52px 14px 48px;
+                min-height: 52px;
+                font-size: 16px;
               }
+              
               .input-icon {
-                left: 12px;
+                left: 14px;
+                width: 20px;
+                height: 20px;
               }
+              
               .password-toggle {
-                right: 8px;
-                min-height: 44px;
-                min-width: 44px;
+                right: 10px;
+                min-height: 48px;
+                min-width: 48px;
+                padding: 12px;
               }
+              
+              .password-toggle svg {
+                width: 20px;
+                height: 20px;
+              }
+              
               .login-actions {
                 flex-direction: column;
-                align-items: stretch;
+                align-items: flex-start;
+                gap: 16px;
+                margin-top: 24px;
               }
+              
+              .remember-me {
+                order: 1;
+                width: 100%;
+                font-size: 15px;
+                padding: 4px 0;
+              }
+              
+              .remember-me input[type="checkbox"] {
+                width: 20px;
+                height: 20px;
+                margin: 0;
+                flex-shrink: 0;
+              }
+              
               .login-button {
+                order: 2;
                 width: 100%;
                 justify-content: center;
+                padding: 16px 24px;
+                font-size: 16px;
+                min-height: 52px;
+                gap: 10px;
+              }
+              
+              .login-button span {
+                flex: 1;
+                text-align: center;
+              }
+              
+              .login-button svg {
+                flex-shrink: 0;
               }
             }
           </style>
