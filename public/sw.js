@@ -1,4 +1,27 @@
-const CACHE_NAME = 'barcode-protocol-v1.0.1';
+// Force clear all caches and unregister
+self.addEventListener('install', (event) => {
+  console.log('Service Worker: Force uninstalling...');
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+  console.log('Service Worker: Force clearing all caches...');
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => caches.delete(cacheName))
+      );
+    }).then(() => {
+      return self.registration.unregister();
+    }).then(() => {
+      return self.clients.matchAll();
+    }).then((clients) => {
+      clients.forEach(client => client.navigate(client.url));
+    })
+  );
+});
+
+const CACHE_NAME = 'barcode-protocol-v1.0.2';
 const STATIC_CACHE = 'static-' + CACHE_NAME;
 const DYNAMIC_CACHE = 'dynamic-' + CACHE_NAME;
 
