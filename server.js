@@ -93,14 +93,27 @@ app.use('/api/', apiLimiter);
 app.use(session({
   secret: 'replace-with-secure-secret-in-production',
   resave: false,
-  saveUninitialized: false,
+  saveUninitialized: true, // Changed to true to ensure session is created even for unauthenticated users
   cookie: {
     secure: process.env.NODE_ENV === 'production', // auto-detect HTTPS in production
     httpOnly: true,
     sameSite: 'lax',
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
-  }
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    path: '/', // Ensure cookie is available for all paths
+    domain: undefined // Let Express auto-detect domain
+  },
+  name: 'connect.sid', // Default session cookie name
+  proxy: true // Trust the reverse proxy (Nginx)
 }));
+
+// Debug middleware - log all requests to help diagnose issues
+app.use((req, res, next) => {
+  // Only log non-static files
+  if (!req.path.startsWith('/icons/') && !req.path.startsWith('/sw.js') && !req.path.match(/\.(css|js|png|jpg|ico)$/)) {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.path} - Session: ${req.session?.userId || 'none'} - IP: ${req.ip}`);
+  }
+  next();
+});
 
 // Authentication middleware
 function requireAuth(req, res, next) {
@@ -122,12 +135,21 @@ function requireAuth(req, res, next) {
     db.get('SELECT * FROM users WHERE id = ? AND is_active = 1', [req.session.userId], (err, user) => {
       if (err || !user) {
         req.session.destroy();
+        // Check if it's an AJAX/API request
+        if (req.xhr || req.headers.accept?.indexOf('json') > -1) {
+          return res.status(401).json({ error: 'Session expired', redirect: '/login' });
+        }
         return res.redirect('/login');
       }
       req.user = user;
       next();
     });
   } else {
+    // No valid session
+    // Check if it's an AJAX/API request
+    if (req.xhr || req.headers.accept?.indexOf('json') > -1) {
+      return res.status(401).json({ error: 'Authentication required', redirect: '/login' });
+    }
     return res.redirect('/login');
   }
 }
