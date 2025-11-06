@@ -19,6 +19,9 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
+// Trust proxy for Nginx reverse proxy
+app.set('trust proxy', 1);
+
 // Default to 3000 so URLs like http://localhost:3000 work out of the box
 const PORT = process.env.PORT || 8080;
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production';
