@@ -541,7 +541,7 @@
             <div class="form-group">
               <label for="quantity">Quantity</label>
               <input type="number" name="quantity" id="quantityInput" min="1" max="100" value="1" required>
-              <small style="color: #666; font-size: 12px;">Number of barcodes to generate (1-100)</small>
+              <small style="color: #666; font-size: 12px;">Number of QR codes to generate (1-100)</small>
             </div>
           </div>
           
@@ -588,7 +588,7 @@
             </div>
           </div>
           
-          <button type="submit" id="createProtocolBtn" disabled>Create Protocol & Generate Barcode</button>
+          <button type="submit" id="createProtocolBtn" disabled>Create Protocol & Generate QR Code</button>
         </form>
       </section>
 
@@ -850,7 +850,7 @@
                 <th style="width:120px;">Province</th>
                 <th style="min-width:180px;">Created</th>
                 <th style="width:120px;">Status</th>
-                <th style="min-width:260px;">Barcode</th>
+                <th style="min-width:260px;">QR Code</th>
                 <th style="min-width:280px;">Actions</th>
               </tr>
             </thead>
@@ -875,9 +875,9 @@
                     <td><%= new Date(p.created_at).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }) %></td>
                     <td><span class="status-badge status-<%= p.status %>"><%= p.status.replace('_', ' ') %></span></td>
                     <td class="barcode-cell">
-                      <img src="/barcode/<%= p.code %>.png" alt="barcode" />
+                      <img src="/barcode/<%= p.code %>.png" alt="QR Code" />
                       <br>
-                      <a href="/download/barcode/<%= p.code %>.png" download="barcode-<%= p.code %>.png" class="btn-download">Download</a>
+                      <a href="/download/barcode/<%= p.code %>.png" download="qrcode-<%= p.code %>.png" class="btn-download">Download QR</a>
                     </td>
                     <td class="actions-cell">
                       <form method="post" action="/protocols/<%= p.id %>/status">

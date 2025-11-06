@@ -1217,16 +1217,17 @@ app.post('/protocols/:id/status', requireAuth, requireRole('admin', 'operator'),
   });
 });
 
-// Barcode image endpoint
+// Barcode image endpoint (QR Code for better mobile scanning)
 app.get('/barcode/:code.png', ensureAuth, (req, res) => {
   const { code } = req.params;
   try {
     bwipjs.toBuffer({
-      bcid: 'code128',
+      bcid: 'qrcode',       // Changed from code128 to qrcode
       text: code,
       scale: 3,
-      height: 10,
-      includetext: true,
+      width: 30,            // QR code uses width instead of height
+      height: 30,
+      includetext: false,   // QR codes don't need text below
     }, function (err, png) {
       if (err) return res.status(500).send('Barcode generation error: ' + err);
       res.type('png');
@@ -1237,19 +1238,20 @@ app.get('/barcode/:code.png', ensureAuth, (req, res) => {
   }
 });
 
-// Download barcode endpoint
+// Download barcode endpoint (QR Code for better mobile scanning)
 app.get('/download/barcode/:code.png', ensureAuth, (req, res) => {
   const { code } = req.params;
   try {
     bwipjs.toBuffer({
-      bcid: 'code128',
+      bcid: 'qrcode',       // Changed from code128 to qrcode
       text: code,
-      scale: 4,
-      height: 12,
-      includetext: true,
+      scale: 5,             // Larger scale for download
+      width: 40,            // QR code uses width instead of height
+      height: 40,
+      includetext: false,   // QR codes don't need text below
     }, function (err, png) {
       if (err) return res.status(500).send('Barcode generation error: ' + err);
-      res.setHeader('Content-Disposition', `attachment; filename="barcode-${code}.png"`);
+      res.setHeader('Content-Disposition', `attachment; filename="qrcode-${code}.png"`);
       res.type('png');
       res.send(png);
     });

@@ -22,21 +22,70 @@
         <div class="login-card">
           <style>
             /* Small, component-scoped tweaks for login page */
-            .input-wrapper { position: relative; }
+            .input-wrapper { position: relative; width: 100%; }
+            .input-icon {
+              position: absolute;
+              left: 14px;
+              top: 50%;
+              transform: translateY(-50%);
+              color: #718096;
+              z-index: 1;
+              pointer-events: none;
+            }
+            .input-wrapper input {
+              width: 100%;
+              padding: 12px 50px 12px 48px;
+              font-size: 16px;
+              border: 2px solid #e2e8f0;
+              border-radius: 8px;
+              box-sizing: border-box;
+            }
             .password-toggle {
               position: absolute;
               right: 10px;
+              top: 50%;
+              transform: translateY(-50%);
               background: transparent;
               border: none;
               color: #718096;
               cursor: pointer;
-              padding: 6px;
+              padding: 8px;
               border-radius: 6px;
+              min-height: 40px;
+              min-width: 40px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              z-index: 2;
             }
             .password-toggle:hover { background: #edf2f7; }
             .login-actions { display:flex; align-items:center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
             .remember-me { display:flex; align-items:center; gap:8px; color:#4a5568; font-size: 14px; }
-            .remember-me input { width: auto; }
+            .remember-me input { width: auto; min-width: auto; }
+            
+            /* Mobile-specific fixes */
+            @media (max-width: 480px) {
+              .input-wrapper input {
+                padding: 14px 50px 14px 48px;
+                min-height: 48px;
+              }
+              .input-icon {
+                left: 12px;
+              }
+              .password-toggle {
+                right: 8px;
+                min-height: 44px;
+                min-width: 44px;
+              }
+              .login-actions {
+                flex-direction: column;
+                align-items: stretch;
+              }
+              .login-button {
+                width: 100%;
+                justify-content: center;
+              }
+            }
           </style>
           <div class="login-header">
             <div class="app-icon">
