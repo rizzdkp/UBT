@@ -1224,17 +1224,20 @@ app.get('/barcode/:code.png', ensureAuth, (req, res) => {
     bwipjs.toBuffer({
       bcid: 'qrcode',       // Changed from code128 to qrcode
       text: code,
-      scale: 3,
-      width: 30,            // QR code uses width instead of height
-      height: 30,
-      includetext: false,   // QR codes don't need text below
+      scale: 4,
+      // QR-specific options. Do not pass width/height which are for 1D barcodes.
+      eclevel: 'M',         // Error correction level (L,M,Q,H)
     }, function (err, png) {
-      if (err) return res.status(500).send('Barcode generation error: ' + err);
+      if (err) {
+        console.error('bwip-js qrcode error:', err);
+        return res.status(500).send('Barcode generation error: ' + (err.message || err));
+      }
       res.type('png');
       res.send(png);
     });
   } catch (e) {
-    res.status(500).send('Barcode generation exception');
+    console.error('Barcode generation exception:', e);
+    res.status(500).send('Barcode generation exception: ' + (e.message || e));
   }
 });
 
@@ -1245,18 +1248,20 @@ app.get('/download/barcode/:code.png', ensureAuth, (req, res) => {
     bwipjs.toBuffer({
       bcid: 'qrcode',       // Changed from code128 to qrcode
       text: code,
-      scale: 5,             // Larger scale for download
-      width: 40,            // QR code uses width instead of height
-      height: 40,
-      includetext: false,   // QR codes don't need text below
+      scale: 8,             // Larger scale for download
+      eclevel: 'M',
     }, function (err, png) {
-      if (err) return res.status(500).send('Barcode generation error: ' + err);
+      if (err) {
+        console.error('bwip-js qrcode download error:', err);
+        return res.status(500).send('Barcode generation error: ' + (err.message || err));
+      }
       res.setHeader('Content-Disposition', `attachment; filename="qrcode-${code}.png"`);
       res.type('png');
       res.send(png);
     });
   } catch (e) {
-    res.status(500).send('Barcode generation exception');
+    console.error('Barcode generation exception (download):', e);
+    res.status(500).send('Barcode generation exception: ' + (e.message || e));
   }
 });
 
