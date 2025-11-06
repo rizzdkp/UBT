@@ -26,6 +26,33 @@ app.set('trust proxy', 1);
 const PORT = process.env.PORT || 8080;
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production';
 
+// Timezone Helper Functions for WIB (GMT+7)
+const WIB_OFFSET = 7 * 60 * 60 * 1000; // 7 hours in milliseconds
+
+function getWIBDate(date = new Date()) {
+  // Convert to WIB (GMT+7)
+  const utcTime = date.getTime();
+  const wibTime = new Date(utcTime + WIB_OFFSET);
+  return wibTime;
+}
+
+function formatWIBTimestamp(date = new Date()) {
+  // Format: YYYY-MM-DD HH:mm:ss in WIB
+  const wibDate = getWIBDate(date);
+  return wibDate.toISOString().replace('T', ' ').substring(0, 19);
+}
+
+function formatWIBDate(date = new Date()) {
+  // Format: YYYY-MM-DD in WIB
+  const wibDate = getWIBDate(date);
+  return wibDate.toISOString().substring(0, 10);
+}
+
+function getWIBTimestamp() {
+  // Get current timestamp in WIB format for database
+  return formatWIBTimestamp();
+}
+
 // Global error logging to diagnose crashes
 process.on('uncaughtException', (err) => {
   console.error('Uncaught Exception:', err && err.stack ? err.stack : err);
@@ -73,7 +100,7 @@ app.use(cors({ origin: process.env.PUBLIC_FRONTEND_ORIGIN || '*' }));
 // Global error logging
 const errorLogPath = path.join(__dirname, 'error.log');
 function logFatal(prefix, err) {
-  const line = `[${new Date().toISOString()}] ${prefix}: ${err && err.stack ? err.stack : err}\n`;
+  const line = `[${formatWIBTimestamp()}] ${prefix}: ${err && err.stack ? err.stack : err}\n`;
   try { fs.appendFileSync(errorLogPath, line); } catch (_) {}
   console.error(prefix, err);
 }
@@ -110,8 +137,33 @@ app.use(session({
 app.use((req, res, next) => {
   // Only log non-static files
   if (!req.path.startsWith('/icons/') && !req.path.startsWith('/sw.js') && !req.path.match(/\.(css|js|png|jpg|ico)$/)) {
-    console.log(`[${new Date().toISOString()}] ${req.method} ${req.path} - Session: ${req.session?.userId || 'none'} - IP: ${req.ip}`);
+    console.log(`[${formatWIBTimestamp()}] ${req.method} ${req.path} - Session: ${req.session?.userId || 'none'} - IP: ${req.ip}`);
   }
+  next();
+});
+
+// Add timezone helper to all views
+app.use((req, res, next) => {
+  res.locals.formatDate = (dateString) => {
+    if (!dateString) return '-';
+    try {
+      const date = new Date(dateString);
+      return formatWIBTimestamp(date);
+    } catch (e) {
+      return dateString;
+    }
+  };
+  
+  res.locals.formatDateOnly = (dateString) => {
+    if (!dateString) return '-';
+    try {
+      const date = new Date(dateString);
+      return formatWIBDate(date);
+    } catch (e) {
+      return dateString.substring(0, 10);
+    }
+  };
+  
   next();
 });
 
@@ -178,9 +230,9 @@ function logActivity(action, targetType = 'system', targetId = null, details = n
       const userId = req.session.userId !== undefined ? req.session.userId : (req.user ? req.user.id : 0);
       
       db.run(
-        `INSERT INTO activity_logs (user_id, action, target_type, target_id, details, ip_address, user_agent)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [userId, action, targetType, targetId, details, ip, userAgent],
+        `INSERT INTO activity_logs (user_id, action, target_type, target_id, details, ip_address, user_agent, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [userId, action, targetType, targetId, details, ip, userAgent, getWIBTimestamp()],
         function(err) {
           if (err) {
             console.error('Activity log error:', err);
@@ -386,31 +438,32 @@ app.get('/', requireAuth, requireRole('admin', 'operator'), logActivity('view_da
   const { period, start_date, end_date } = req.query;
   
   try {
-    // Calculate date filter based on period
+    // Calculate date filter based on period using WIB timezone
     let dateFilter = '';
     let params = [];
     
-    const now = new Date();
+    const now = getWIBDate(); // Use WIB timezone
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     
     if (period === 'week') {
       const weekStart = new Date(today);
       weekStart.setDate(today.getDate() - today.getDay()); // Start of week (Sunday)
       dateFilter = ' WHERE p.created_at >= ?';
-      params.push(weekStart.toISOString());
+      params.push(formatWIBTimestamp(weekStart));
     } else if (period === 'month') {
       const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
       dateFilter = ' WHERE p.created_at >= ?';
-      params.push(monthStart.toISOString());
+      params.push(formatWIBTimestamp(monthStart));
     } else if (period === 'custom' && start_date && end_date) {
-      const startDateTime = new Date(start_date + 'T00:00:00').toISOString();
-      const endDateTime = new Date(end_date + 'T23:59:59').toISOString();
+      // Parse dates in WIB timezone
+      const startDateTime = formatWIBTimestamp(new Date(start_date + 'T00:00:00'));
+      const endDateTime = formatWIBTimestamp(new Date(end_date + 'T23:59:59'));
       dateFilter = ' WHERE p.created_at >= ? AND p.created_at <= ?';
       params.push(startDateTime, endDateTime);
     } else {
-      // Today (default)
-      const todayStart = today.toISOString();
-      const todayEnd = new Date(today.getTime() + 24 * 60 * 60 * 1000).toISOString();
+      // Today (default) in WIB
+      const todayStart = formatWIBTimestamp(today);
+      const todayEnd = formatWIBTimestamp(new Date(today.getTime() + 24 * 60 * 60 * 1000));
       dateFilter = ' WHERE p.created_at >= ? AND p.created_at < ?';
       params.push(todayStart, todayEnd);
     }
@@ -748,16 +801,16 @@ app.post('/login', authLimiter, (req, res) => {
       return res.render('login', { error: 'Invalid username or password' });
     }
     
-    // Update last login
-    db.run('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?', [user.id]);
+    // Update last login with WIB timestamp
+    db.run('UPDATE users SET last_login = ? WHERE id = ?', [getWIBTimestamp(), user.id]);
     
     // Log login activity
     const ip = req.ip || req.connection.remoteAddress;
     const userAgent = req.get('User-Agent');
     db.run(
-      `INSERT INTO activity_logs (user_id, action, ip_address, user_agent)
-       VALUES (?, ?, ?, ?)`,
-      [user.id, 'login', ip, userAgent]
+      `INSERT INTO activity_logs (user_id, action, ip_address, user_agent, created_at)
+       VALUES (?, ?, ?, ?, ?)`,
+      [user.id, 'login', ip, userAgent, getWIBTimestamp()]
     );
     
     // Set session
@@ -987,8 +1040,8 @@ app.post('/partners/:id/toggle-status', requireAuth, requireRole('admin'), (req,
     const newStatus = partner.is_active ? 0 : 1;
     
     db.run(
-      'UPDATE partners SET is_active = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
-      [newStatus, partnerId],
+      'UPDATE partners SET is_active = ?, updated_at = ? WHERE id = ?',
+      [newStatus, getWIBTimestamp(), partnerId],
       (err) => {
         if (err) {
           console.error('Error updating partner status:', err);
@@ -1121,7 +1174,8 @@ app.post('/protocols', requireAuth, requireRole('admin', 'operator'), logActivit
     }
     
     // Build code base: YYYYMMDD + province code (3 chars) + partner code + timestamp
-    const now = new Date();
+    // Use WIB timezone
+    const now = getWIBDate();
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
     const day = String(now.getDate()).padStart(2, '0');
@@ -1133,6 +1187,7 @@ app.post('/protocols', requireAuth, requireRole('admin', 'operator'), logActivit
     
     // Create protocols in batch
     const protocols = [];
+    const createdAt = getWIBTimestamp(); // Use WIB timestamp
     const stmt = db.prepare(
       'INSERT INTO protocols (code, province_code, partner_id, created_at, status, created_by) VALUES (?, ?, ?, ?, ?, ?)'
     );
@@ -1141,7 +1196,7 @@ app.post('/protocols', requireAuth, requireRole('admin', 'operator'), logActivit
       const code = qty === 1 ? codeBase : `${codeBase}_${String(i).padStart(3, '0')}`;
       protocols.push(code);
       
-      stmt.run([code, province, partner_id, new Date().toISOString(), 'created', req.session.userId || 0], function(err) {
+      stmt.run([code, province, partner_id, createdAt, 'created', req.session.userId || 0], function(err) {
         if (err) {
           console.error('Error creating protocol:', err);
         }
@@ -1159,9 +1214,9 @@ app.post('/protocols', requireAuth, requireRole('admin', 'operator'), logActivit
         `UPDATE stock_tracking 
          SET total_allocated = total_allocated + ?,
              total_available = total_available + ?,
-             last_updated = CURRENT_TIMESTAMP 
+             last_updated = ? 
          WHERE partner_id = ?`,
-        [qty, qty, partner_id],
+        [qty, qty, getWIBTimestamp(), partner_id],
         (stockErr) => {
           if (stockErr) {
             console.error('Error updating stock:', stockErr);
@@ -1214,9 +1269,9 @@ app.post('/protocols/:id/status', requireAuth, requireRole('admin', 'operator'),
             `UPDATE stock_tracking 
              SET total_used = total_used + ?,
                  total_available = total_available - ?,
-                 last_updated = CURRENT_TIMESTAMP 
+                 last_updated = ? 
              WHERE partner_id = ?`,
-            [stockChange, stockChange, oldProtocol.partner_id],
+            [stockChange, stockChange, getWIBTimestamp(), oldProtocol.partner_id],
             (stockErr) => {
               if (stockErr) {
                 console.error('Error updating stock:', stockErr);
