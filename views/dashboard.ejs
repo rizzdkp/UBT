@@ -918,42 +918,21 @@
         }, 1500);
       });
 
-      // Register Service Worker for PWA functionality
+      // Unregister old Service Worker from Vercel
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then((registration) => {
-              console.log('SW registered: ', registration);
-              
-              // Check for updates
-              registration.addEventListener('updatefound', () => {
-                const newWorker = registration.installing;
-                console.log('New service worker found');
-                
-                newWorker.addEventListener('statechange', () => {
-                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                    // New update available
-                    if (confirm('New version available! Reload to update?')) {
-                      newWorker.postMessage({ type: 'SKIP_WAITING' });
-                      window.location.reload();
-                    }
-                  }
-                });
-              });
-            })
-            .catch((registrationError) => {
-              console.log('SW registration failed: ', registrationError);
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for(let registration of registrations) {
+            registration.unregister().then(function(success) {
+              console.log('SW unregistered:', success);
             });
+          }
         });
-      }
-
-      // Request notification permission
-      if ('Notification' in window && navigator.serviceWorker) {
-        if (Notification.permission === 'default') {
-          Notification.requestPermission().then((permission) => {
-            console.log('Notification permission:', permission);
-          });
-        }
+        // Clear all caches
+        caches.keys().then(function(names) {
+          for (let name of names) {
+            caches.delete(name);
+          }
+        });
       }
       
       function updateTableRow(protocol) {

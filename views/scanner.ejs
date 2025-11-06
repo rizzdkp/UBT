@@ -318,16 +318,20 @@
     // Initialize on load
     initScanner();
 
-        // Register Service Worker for PWA functionality
+        // Unregister old Service Worker from Vercel
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then((registration) => {
-                        console.log('SW registered: ', registration);
-                    })
-                    .catch((registrationError) => {
-                        console.log('SW registration failed: ', registrationError);
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let registration of registrations) {
+                    registration.unregister().then(function(success) {
+                        console.log('SW unregistered:', success);
                     });
+                }
+            });
+            // Clear all caches
+            caches.keys().then(function(names) {
+                for (let name of names) {
+                    caches.delete(name);
+                }
             });
         }
     </script>
