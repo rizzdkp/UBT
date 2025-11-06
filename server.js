@@ -1098,14 +1098,16 @@ app.post('/protocols', requireAuth, requireRole('admin', 'operator'), logActivit
       return res.status(400).send('Invalid or inactive partner');
     }
     
-    // Build code base: YYYYMMDD + province code (3 chars) + partner code
+    // Build code base: YYYYMMDD + province code (3 chars) + partner code + timestamp
     const now = new Date();
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
     const day = String(now.getDate()).padStart(2, '0');
     const dateStr = `${year}${month}${day}`;
     
-    const codeBase = `${dateStr}${province}${partner.code}`;
+    // Add timestamp to ensure uniqueness (last 6 digits of timestamp)
+    const timestamp = Date.now().toString().slice(-6);
+    const codeBase = `${dateStr}${province}${partner.code}${timestamp}`;
     
     // Create protocols in batch
     const protocols = [];
