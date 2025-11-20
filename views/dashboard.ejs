@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
+    <title>Dasbor - Protokol Barcode</title>
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#106EBE">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Protokol Barcode">
+    <link rel="apple-touch-icon" href="/icons/icon-152x152.svg">
+    
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/mobile-responsive.css" />
+    <link rel="stylesheet" href="/toast.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      .form-row {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 15px;
+      }
+      
+      .form-group {
+        flex: 1;
+      }
+      
+      .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+        color: #333;
+      }
+      
+      .form-group select,
+      .form-group input,
+      .form-group textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+      }
+      
+      .new-partner-form {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        margin-top: 15px;
+        border: 2px solid #dee2e6;
+      }
+      
+      .new-partner-form h3 {
+        margin-top: 0;
+        color: #495057;
+      }
+      
+      .form-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        margin-top: 15px;
+      }
+      
+      .btn-secondary {
+        background: #6c757d;
+        color: white;
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      
+      .btn-secondary:hover {
+        background: #545b62;
+      }
+      
+      .btn-primary {
+        background: #007bff;
+        color: white;
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      
+      .btn-primary:hover {
+        background: #0056b3;
+      }
+      
+      #createProtocolBtn {
+        background: #28a745;
+        color: white;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        margin-top: 20px;
+        width: 100%;
+      }
+      
+      #createProtocolBtn:hover:not(:disabled) {
+        background: #218838;
+      }
+      
+      #createProtocolBtn:disabled {
+        background: #6c757d;
+        cursor: not-allowed;
+      }
+      
+      .metrics-grid {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+      }
+      
+      .metric-card {
+        flex: 1;
+        min-width: 180px;
+        background: linear-gradient(135deg, #106EBE 0%, #0d4f88 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        text-shadow: 0 1px 2px rgba(0,0,0,0.35);
+      }
+      
+      .metric-icon {
+        font-size: 32px;
+        opacity: 0.9;
+      }
+      
+      .metric-content {
+        flex: 1;
+      }
+      
+      .metric-number {
+        font-size: 28px;
+        font-weight: bold;
+        margin-bottom: 5px;
+        color: #ffffff;
+      }
+      
+      .metric-label {
+        font-size: 14px;
+        color: rgba(255,255,255,0.9);
+      }
+      
+      .analytics-section {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      }
+      
+      .analytics-section h3 {
+        margin-top: 0;
+        margin-bottom: 20px;
+        color: #333;
+        font-size: 18px;
+      }
+      
+      .partner-performance-table {
+        overflow-x: auto;
+      }
+      
+      .performance-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+      }
+      
+      .performance-table th {
+        background: #f8f9fa;
+        padding: 12px;
+        text-align: left;
+        font-weight: bold;
+        border-bottom: 2px solid #e9ecef;
+        color: #495057;
+        white-space: nowrap;
+      }
+      
+      .performance-table td {
+        padding: 12px;
+        border-bottom: 1px solid #e9ecef;
+        vertical-align: middle;
+      }
+      
+      .performance-table tr:hover {
+        background: #f8f9fa;
+      }
+      
+      .usage-indicator {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      
+      .usage-indicator .usage-bar {
+        width: 80px;
+        height: 8px;
+        background: #e9ecef;
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      
+      .usage-indicator .usage-fill {
+        height: 100%;
+        border-radius: 4px;
+        transition: width 0.3s ease;
+      }
+      
+      .usage-indicator .usage-fill.low {
+        background: #28a745;
+      }
+      
+      .usage-indicator .usage-fill.medium {
+        background: #ffc107;
+      }
+      
+      .usage-indicator .usage-fill.high {
+        background: #dc3545;
+      }
+      
+      .usage-indicator span {
+        font-weight: bold;
+        font-size: 12px;
+        min-width: 40px;
+      }
+      
+      /* Status Breakdown Badges */
+      .status-breakdown {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      
+      .status-breakdown-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+      }
+      
+      .status-breakdown-badge.created {
+        background: #dbeafe;
+        color: #1e40af;
+      }
+      
+      .status-breakdown-badge.delivered {
+        background: #fef3c7;
+        color: #92400e;
+      }
+      
+      .status-breakdown-badge.terpakai {
+        background: #d1fae5;
+        color: #065f46;
+      }
+      
+      .type-badge {
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+      }
+      
+      .type-badge.type-rumah_sakit {
+        background: #e8f5e8;
+        color: #388e3c;
+      }
+      
+      .type-badge.type-puskesmas {
+        background: #f3e5f5;
+        color: #7b1fa2;
+      }
+      
+      .type-badge.type-klinik {
+        background: #e3f2fd;
+        color: #1976d2;
+      }
+      
+      .analytics-charts {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+      }
+      
+      .chart-wrapper {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      }
+      
+      .chart-wrapper h3 {
+        margin-top: 0;
+        margin-bottom: 15px;
+        color: #333;
+        font-size: 16px;
+      }
+      
+      .no-data {
+        text-align: center;
+        color: #9ca3af;
+        font-style: italic;
+        padding: 20px;
+      }
+      
+      @media (max-width: 768px) {
+        .form-row {
+          flex-direction: column;
+          gap: 10px;
+        }
+        
+        .form-actions {
+          flex-direction: column;
+        }
+        
+        .metrics-grid {
+          flex-direction: column;
+        }
+        
+        .metric-card {
+          min-width: auto;
+        }
+        
+        .analytics-charts {
+          grid-template-columns: 1fr;
+        }
+        
+        .performance-table {
+          font-size: 12px;
+        }
+        
+        .performance-table th,
+        .performance-table td {
+          padding: 8px 4px;
+        }
+        
+        .usage-indicator .usage-bar {
+          width: 50px;
+        }
+        
+        .status-breakdown {
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Sidebar Navigasi Mobile -->
+      <div class="mobile-nav-backdrop" id="mobileNavBackdrop"></div>
+      <div class="mobile-nav-overlay" id="mobileNav">
+        <div class="mobile-nav-content">
+          <div class="mobile-nav-user">
+            <strong><%= user.full_name || user %></strong>
+            <% if (user.role) { %><small><%= user.role %></small><% } %>
+          </div>
+          <nav class="navigation-links">
+            <a href="/dashboard">📊 Dasbor</a>
+            <a href="/partners">🏢 Mitra</a>
+            <% if (user.role === 'admin') { %>
+              <a href="/users">👥 Pengguna</a>
+            <% } %>
+            <a href="/scanner">📱 Scanner</a>
+            <a href="/logout" style="color: #e53e3e; font-weight: 600;">🚪 Keluar</a>
+          </nav>
+        </div>
+      </div>
+
+      <header>
+        <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle Menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <h1>Dasbor Protokol Barcode</h1>
+        <div class="user">
+          Masuk sebagai <strong><%= user.full_name || user %></strong> 
+          <% if (user.role) { %>(<%= user.role %>)<% } %> — 
+          <a href="/partners">Mitra</a> |
+          <% if (user.role === 'admin') { %>
+            <a href="/users">Pengguna</a> | 
+          <% } %>
+          <a href="/logout">Keluar</a>
+        </div>
+      </header>
+
+      <section>
+        <h2>Buat Protokol</h2>
+        <form method="post" action="/protocols" id="protocolForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="province">Provinsi</label>
+              <select name="province" id="provinceSelect" required>
+                <option value="">Pilih Provinsi</option>
+                <% provinces.forEach(function(p){ %>
+                <option value="<%= p.code %>"><%= p.name %> (<%= p.code %>)</option>
+                <% }) %>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="partner">Mitra</label>
+              <select name="partner_id" id="partnerSelect" required disabled>
+                <option value="">Pilih Provinsi Terlebih Dahulu</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="quantity">Jumlah</label>
+              <input type="number" name="quantity" id="quantityInput" min="1" max="100" value="1" required>
+              <small style="color: #666; font-size: 12px;">Jumlah kode QR yang akan dibuat (1-100)</small>
+            </div>
+          </div>
+          
+          <div class="form-group" id="addPartnerSection" style="display: none;">
+            <button type="button" id="addPartnerBtn" class="btn-secondary">
+              + Tambah Mitra Baru untuk Provinsi yang Dipilih
+            </button>
+          </div>
+          
+          <div id="newPartnerForm" style="display: none;" class="new-partner-form">
+            <h3>Tambah Mitra Baru</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="partner_name">Nama Mitra</label>
+                <input type="text" id="partner_name" name="partner_name" placeholder="Nama mitra">
+              </div>
+              <div class="form-group">
+                <label for="partner_type">Tipe Mitra</label>
+                <select id="partner_type" name="partner_type">
+                  <option value="">Pilih Tipe</option>
+                  <option value="klinik">Klinik</option>
+                  <option value="puskesmas">Puskesmas</option>
+                  <option value="rumah_sakit">Rumah Sakit</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="partner_code">Kode Mitra</label>
+                <input type="text" id="partner_code" name="partner_code" placeholder="Contoh: KLN001" maxlength="10">
+              </div>
+              <div class="form-group">
+                <label for="partner_phone">Telepon (Opsional)</label>
+                <input type="tel" id="partner_phone" name="partner_phone" placeholder="Nomor telepon">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="partner_address">Alamat (Opsional)</label>
+              <textarea id="partner_address" name="partner_address" rows="2" placeholder="Alamat"></textarea>
+            </div>
+            <div class="form-actions">
+              <button type="button" id="cancelPartnerBtn" class="btn-secondary">Batal</button>
+              <button type="button" id="savePartnerBtn" class="btn-primary">Simpan & Gunakan Mitra</button>
+            </div>
+          </div>
+          
+          <button type="submit" id="createProtocolBtn" disabled>Buat Protokol & Generate Kode QR</button>
+        </form>
+      </section>
+
+      <section>
+        <h2>Pemantauan & Statistik</h2>
+        <div class="stats-controls">
+          <form method="get" action="/" class="filter-form">
+            <div class="filter-row">
+              <div class="filter-group">
+                <label>Filter Periode</label>
+                <select name="period" id="periodSelect">
+                  <option value="today" <%= (req.query.period || 'today') === 'today' ? 'selected' : '' %>>Hari Ini</option>
+                  <option value="week" <%= req.query.period === 'week' ? 'selected' : '' %>>Minggu Ini</option>
+                  <option value="month" <%= req.query.period === 'month' ? 'selected' : '' %>>Bulan Ini</option>
+                  <option value="custom" <%= req.query.period === 'custom' ? 'selected' : '' %>>Rentang Tanggal Khusus</option>
+                </select>
+              </div>
+              <div class="filter-group custom-date-range" style="display: <%= req.query.period === 'custom' ? 'block' : 'none' %>;">
+                <label>Dari</label>
+                <input type="date" name="start_date" value="<%= req.query.start_date || '' %>" />
+                <label>Sampai</label>
+                <input type="date" name="end_date" value="<%= req.query.end_date || '' %>" />
+              </div>
+              <div class="filter-group">
+                <button type="submit" class="btn-filter">Terapkan Filter</button>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-number"><%= stats.total %></div>
+            <div class="stat-label">Total Protokol</div>
+          </div>
+          <div class="stat-card created">
+            <div class="stat-number"><%= stats.created %></div>
+            <div class="stat-label">Dibuat</div>
+          </div>
+          <div class="stat-card delivered">
+            <div class="stat-number"><%= stats.delivered %></div>
+            <div class="stat-label">Terkirim</div>
+          </div>
+          <div class="stat-card terpakai">
+            <div class="stat-number"><%= stats.terpakai %></div>
+            <div class="stat-label">Terpakai</div>
+          </div>
+        </div>
+
+        <div class="charts-row">
+          <div class="chart-container">
+            <h3>Distribusi Status</h3>
+            <div class="pie-chart">
+              <div class="chart-legend">
+                <div class="legend-item">
+                  <span class="legend-color created"></span>
+                  <span>Dibuat (<%= stats.created %>)</span>
+                </div>
+                <div class="legend-item">
+                  <span class="legend-color delivered"></span>
+                  <span>Terkirim (<%= stats.delivered %>)</span>
+                </div>
+                <div class="legend-item">
+                  <span class="legend-color terpakai"></span>
+                  <span>Terpakai (<%= stats.terpakai %>)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="chart-container">
+            <h3>5 Provinsi Teratas</h3>
+            <div class="bar-chart">
+              <% stats.topProvinces.forEach(function(prov, index){ %>
+              <div class="bar-item">
+                <span class="bar-label"><%= prov.province_code %></span>
+                <div class="bar-container">
+                  <div class="bar-fill" style="width: <%= (prov.count / Math.max(...stats.topProvinces.map(p => p.count))) * 100 %>%"></div>
+                  <span class="bar-value"><%= prov.count %></span>
+                </div>
+              </div>
+              <% }) %>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Stok Langsung & Analitik -->
+      <section>
+        <h2>📊 Stok Langsung & Analitik</h2>
+        
+        <!-- Metrik Kinerja -->
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-icon">📊</div>
+            <div class="metric-content">
+              <div class="metric-number"><%= analytics.metrics.total_protocols || 0 %></div>
+              <div class="metric-label">Total Protokol</div>
+            </div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-icon">🌍</div>
+            <div class="metric-content">
+              <div class="metric-number"><%= analytics.metrics.unique_provinces || 0 %></div>
+              <div class="metric-label">Provinsi Tercakup</div>
+            </div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-icon">🏢</div>
+            <div class="metric-content">
+              <div class="metric-number"><%= analytics.metrics.active_partners || 0 %></div>
+              <div class="metric-label">Mitra Aktif</div>
+            </div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-icon">⚡</div>
+            <div class="metric-content">
+              <div class="metric-number"><%= analytics.metrics.avg_per_day || 0 %></div>
+              <div class="metric-label">Rata-rata/Hari</div>
+            </div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-icon">✅</div>
+            <div class="metric-content">
+              <div class="metric-number"><%= analytics.metrics.completion_rate || 0 %>%</div>
+              <div class="metric-label">Tingkat Penyelesaian</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabel Kinerja Mitra dengan STATUS BREAKDOWN dan NAMA PASIEN -->
+        <div class="analytics-section">
+          <h3>🏆 Kinerja & Stok Mitra</h3>
+          <div class="partner-performance-table">
+            <table class="performance-table">
+              <thead>
+                <tr>
+                  <th>MITRA</th>
+                  <th>NAMA PASIEN</th>
+                  <th>TIPE</th>
+                  <th>PROVINSI</th>
+                  <th>TOTAL</th>
+                  <th>RINCIAN STATUS</th>
+                  <th>DIGUNAKAN</th>
+                  <th>TINGKAT PENGGUNAAN</th>
+                  <th>AKTIVITAS TERAKHIR</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% if (analytics.partnerPerformance && analytics.partnerPerformance.length > 0) { %>
+                  <% analytics.partnerPerformance.forEach(function(partner, index){ 
+                    // Hitung status breakdown
+                    const createdCount = partner.created_count || 0;
+                    const deliveredCount = partner.delivered_count || 0;
+                    const terpakaiCount = partner.terpakai_count || 0;
+                    
+                    // Dummy patient names
+                    const dummyPatients = [
+                      'Ahmad Sudirman', 
+                      'Siti Nurhaliza', 
+                      'Budi Santoso', 
+                      'Dewi Kartika',
+                      'Eko Prasetyo',
+                      null,
+                      'Rina Wijaya'
+                    ];
+                    const dummyPatient = dummyPatients[index % dummyPatients.length];
+                  %>
+                  <tr>
+                    <td>
+                      <strong><%= partner.partner_name %></strong>
+                      <br><code style="font-size: 10px; color: #6b7280;"><%= partner.partner_code %></code>
+                    </td>
+                    <td>
+                      <% if (dummyPatient) { %>
+                        <span style="color: #059669; font-weight: 600;">👤 <%= dummyPatient %></span>
+                      <% } else { %>
+                        <span style="color: #9ca3af; font-style: italic; font-size: 12px;">- Belum ada pasien -</span>
+                      <% } %>
+                    </td>
+                    <td>
+                      <span class="type-badge type-<%= partner.partner_type %>">
+                        <%= partner.partner_type.replace('_', ' ').toUpperCase() %>
+                      </span>
+                    </td>
+                    <td><strong><%= partner.province_code %></strong></td>
+                    <td><strong style="font-size: 16px;"><%= partner.total_protocols %></strong></td>
+                    <td>
+                      <div class="status-breakdown">
+                        <% if (createdCount > 0) { %>
+                          <span class="status-breakdown-badge created">
+                            Dibuat: <%= createdCount %>
+                          </span>
+                        <% } %>
+                        <% if (deliveredCount > 0) { %>
+                          <span class="status-breakdown-badge delivered">
+                            Terkirim: <%= deliveredCount %>
+                          </span>
+                        <% } %>
+                        <% if (terpakaiCount > 0) { %>
+                          <span class="status-breakdown-badge terpakai">
+                            Terpakai: <%= terpakaiCount %>
+                          </span>
+                        <% } %>
+                        <% if (createdCount === 0 && deliveredCount === 0 && terpakaiCount === 0) { %>
+                          <span style="color: #9ca3af; font-size: 12px;">-</span>
+                        <% } %>
+                      </div>
+                    </td>
+                    <td><%= partner.used_protocols %></td>
+                    <td>
+                      <div class="usage-indicator">
+                        <div class="usage-bar">
+                          <div class="usage-fill <%= partner.usage_rate >= 75 ? 'high' : partner.usage_rate >= 50 ? 'medium' : 'low' %>" 
+                               style="width: <%= partner.usage_rate %>%"></div>
+                        </div>
+                        <span><%= partner.usage_rate %>%</span>
+                      </div>
+                    </td>
+                    <td>
+                      <small><%= partner.last_activity ? new Date(partner.last_activity).toLocaleDateString('id-ID') : 'Tidak Pernah' %></small>
+                    </td>
+                  </tr>
+                  <% }) %>
+                <% } else { %>
+                  <tr>
+                    <td colspan="9" class="no-data">Tidak ada data kinerja mitra</td>
+                  </tr>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Grafik Interaktif -->
+        <div class="analytics-charts">
+          <div class="chart-wrapper">
+            <h3>📈 Tren Harian (30 Hari Terakhir)</h3>
+            <canvas id="dailyTrendsChart" width="400" height="200"></canvas>
+          </div>
+          
+          <div class="chart-wrapper">
+            <h3>🕒 Distribusi Per Jam (7 Hari Terakhir)</h3>
+            <canvas id="hourlyChart" width="400" height="200"></canvas>
+          </div>
+          
+          <div class="chart-wrapper">
+            <h3>📊 Distribusi Status</h3>
+            <canvas id="statusPieChart" width="400" height="200"></canvas>
+          </div>
+          
+          <div class="chart-wrapper">
+            <h3>🏛️ Kinerja Provinsi</h3>
+            <canvas id="provinceChart" width="400" height="200"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- Protokol -->
+      <section>
+        <h2>📦 Protokol</h2>
+        <style>
+          .protocols-wrapper { overflow:auto; -webkit-overflow-scrolling: touch; border: 1px solid #e5e7eb; border-radius: 8px; background:#fff; padding: 8px; }
+          .protocols-table { width:100%; border-collapse: collapse; min-width: 960px; table-layout: auto; }
+          .protocols-table th, .protocols-table td { padding:10px 12px; border-bottom:1px solid #f0f0f0; text-align:left; vertical-align: middle; }
+          .protocols-table th { background:#f9fafb; color:#374151; font-weight: 600; position: sticky; top: 0; z-index: 1; }
+          .protocols-table .barcode-cell img { max-width: 220px; height:auto; display:block; }
+          .protocols-table .btn-download { margin-top:6px; }
+          .protocols-table .actions-cell { white-space: nowrap; display: flex; align-items: center; gap: 10px; }
+          .protocols-table .actions-cell form { display:flex; gap:8px; align-items:center; }
+          .protocols-table .actions-cell select { padding:6px 8px; font-size:12px; min-width: 140px; }
+          .protocols-table .actions-cell button { padding:8px 12px; font-size:12px; background:#2563eb; color:#fff; border:none; border-radius:6px; cursor:pointer; }
+          .protocols-table .actions-cell button:hover { background:#1d4ed8; }
+          .protocols-table .group-header td { background:#f3f4f6; font-weight:600; }
+          .protocols-table .status-badge { padding:4px 10px; border-radius:12px; font-size:11px; font-weight:600; text-transform: capitalize; }
+          .protocols-table .status-badge.status-created { background: #dbeafe; color: #1e40af; }
+          .protocols-table .status-badge.status-delivered { background: #fef3c7; color: #92400e; }
+          .protocols-table .status-badge.status-terpakai { background: #d1fae5; color: #065f46; }
+          @media (max-width: 768px) {
+            .protocols-table { min-width: 800px; }
+            .protocols-table .barcode-cell img { max-width: 180px; }
+          }
+        </style>
+        <% 
+          const protocolsGrouped = {};
+          (protocols || []).forEach(p => {
+            const key = p.partner_id || 'NO_PARTNER';
+            if (!protocolsGrouped[key]) {
+              protocolsGrouped[key] = {
+                partner_name: p.partner_name || 'Tidak Ada Mitra',
+                partner_code: p.partner_code || '',
+                partner_type: p.partner_type || '',
+                items: []
+              };
+            }
+            protocolsGrouped[key].items.push(p);
+          });
+          const groups = Object.values(protocolsGrouped);
+        %>
+        <% if (groups.length === 0) { %>
+          <div class="no-data">Belum ada protokol untuk periode ini.</div>
+        <% } else { %>
+          <div class="protocols-wrapper">
+          <table class="protocols-table">
+            <thead>
+              <tr>
+                <th style="width:80px;">ID</th>
+                <th style="min-width:220px;">Kode</th>
+                <th style="width:120px;">Provinsi</th>
+                <th style="min-width:180px;">Dibuat</th>
+                <th style="width:120px;">Status</th>
+                <th style="min-width:260px;">Kode QR</th>
+                <th style="min-width:280px;">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% groups.forEach(function(g){ %>
+                <tr class="group-header">
+                  <td colspan="7">
+                    <strong>Mitra:</strong> <%= g.partner_name %>
+                    <% if (g.partner_type) { %>
+                      <span class="type-badge type-<%= g.partner_type %>"><%= g.partner_type.replace('_',' ').toUpperCase() %></span>
+                    <% } %>
+                    <% if (g.partner_code) { %>
+                      <code style="margin-left:8px; background: #f1f5f9; padding: 2px 8px; border-radius: 4px; font-size: 11px;">(<%= g.partner_code %>)</code>
+                    <% } %>
+                  </td>
+                </tr>
+                <% g.items.forEach(function(p){ 
+                  const statusText = {
+                    'created': 'Dibuat',
+                    'delivered': 'Terkirim',
+                    'terpakai': 'Terpakai'
+                  };
+                %>
+                  <tr>
+                    <td><%= p.id %></td>
+                    <td><strong><%= p.code %></strong></td>
+                    <td><%= p.province_code %></td>
+                    <td><%= new Date(p.created_at).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }) %></td>
+                    <td><span class="status-badge status-<%= p.status %>"><%= statusText[p.status] || p.status %></span></td>
+                    <td class="barcode-cell">
+                      <img src="/barcode/<%= p.code %>.png" alt="QR <%= p.code %>" />
+                      <br>
+                      <a href="/download/barcode/<%= p.code %>.png" download="qrcode-<%= p.code %>.png" class="btn-download">Unduh QR</a>
+                    </td>
+                    <td class="actions-cell">
+                      <form method="post" action="/protocols/<%= p.id %>/status">
+                        <select name="status">
+                          <option value="created" <%= p.status === 'created' ? 'selected' : '' %>>Dibuat</option>
+                          <option value="delivered" <%= p.status === 'delivered' ? 'selected' : '' %>>Terkirim</option>
+                          <option value="terpakai" <%= p.status === 'terpakai' ? 'selected' : '' %>>Terpakai</option>
+                        </select>
+                        <button type="submit">Perbarui</button>
+                      </form>
+                    </td>
+                  </tr>
+                <% }) %>
+              <% }) %>
+            </tbody>
+          </table>
+          </div>
+        <% } %>
+      </section>
+    </div>
+    
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/toast.js"></script>
+    <script>
+      const socket = io();
+      
+      socket.on('status_updated', function(data) {
+        showToast(`Protokol ${data.code} diperbarui menjadi ${data.newStatus}`, 'success');
+        updateTableRow(data.protocol);
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+      });
+
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for(let registration of registrations) {
+            registration.unregister();
+          }
+        });
+        caches.keys().then(function(names) {
+          for (let name of names) {
+            caches.delete(name);
+          }
+        });
+      }
+      
+      function updateTableRow(protocol) {
+        const rows = document.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+          const codeCell = row.querySelector('td:nth-child(2)');
+          if (codeCell && codeCell.textContent.includes(protocol.code)) {
+            const statusCell = row.querySelector('td:nth-child(5)');
+            const statusBadge = statusCell.querySelector('.status-badge');
+            statusBadge.className = `status-badge status-${protocol.status}`;
+            const statusText = {
+              'created': 'Dibuat',
+              'delivered': 'Terkirim',
+              'terpakai': 'Terpakai'
+            };
+            statusBadge.textContent = statusText[protocol.status] || protocol.status;
+          }
+        });
+      }
+      
+      function showToast(message, type = 'info') {
+        let toast = document.getElementById('dashboard-toast');
+        if (!toast) {
+          toast = document.createElement('div');
+          toast.id = 'dashboard-toast';
+          toast.className = 'dashboard-toast';
+          document.body.appendChild(toast);
+        }
+        
+        toast.textContent = message;
+        toast.className = `dashboard-toast dashboard-toast-${type} show`;
+        
+        setTimeout(() => {
+          toast.classList.remove('show');
+        }, 3000);
+      }
+
+      document.getElementById('periodSelect').addEventListener('change', function() {
+        const customDateRange = document.querySelector('.custom-date-range');
+        if (this.value === 'custom') {
+          customDateRange.style.display = 'block';
+        } else {
+          customDateRange.style.display = 'none';
+        }
+      });
+
+      document.getElementById('provinceSelect').addEventListener('change', function() {
+        const provinceCode = this.value;
+        const partnerSelect = document.getElementById('partnerSelect');
+        const addPartnerSection = document.getElementById('addPartnerSection');
+        const createBtn = document.getElementById('createProtocolBtn');
+        
+        if (!provinceCode) {
+          partnerSelect.disabled = true;
+          partnerSelect.innerHTML = '<option value="">Pilih Provinsi Terlebih Dahulu</option>';
+          addPartnerSection.style.display = 'none';
+          createBtn.disabled = true;
+          return;
+        }
+        
+        fetch(`/api/partners/${provinceCode}`)
+          .then(response => response.json())
+          .then(partners => {
+            partnerSelect.innerHTML = '<option value="">Pilih Mitra</option>';
+            
+            partners.forEach(partner => {
+              const option = document.createElement('option');
+              option.value = partner.id;
+              option.textContent = `${partner.name} (${partner.code}) - ${partner.type.replace('_', ' ').toUpperCase()}`;
+              partnerSelect.appendChild(option);
+            });
+            
+            partnerSelect.disabled = false;
+            addPartnerSection.style.display = 'block';
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            partnerSelect.innerHTML = '<option value="">Error memuat mitra</option>';
+          });
+      });
+      
+      document.getElementById('partnerSelect').addEventListener('change', function() {
+        const createBtn = document.getElementById('createProtocolBtn');
+        createBtn.disabled = !this.value;
+      });
+      
+      document.getElementById('addPartnerBtn').addEventListener('click', function() {
+        document.getElementById('newPartnerForm').style.display = 'block';
+        this.style.display = 'none';
+      });
+      
+      document.getElementById('cancelPartnerBtn').addEventListener('click', function() {
+        document.getElementById('newPartnerForm').style.display = 'none';
+        document.getElementById('addPartnerBtn').style.display = 'block';
+        document.getElementById('partner_name').value = '';
+        document.getElementById('partner_type').value = '';
+        document.getElementById('partner_code').value = '';
+        document.getElementById('partner_phone').value = '';
+        document.getElementById('partner_address').value = '';
+      });
+      
+      document.getElementById('savePartnerBtn').addEventListener('click', function() {
+        const provinceCode = document.getElementById('provinceSelect').value;
+        const partnerData = {
+          name: document.getElementById('partner_name').value,
+          type: document.getElementById('partner_type').value,
+          code: document.getElementById('partner_code').value,
+          province_code: provinceCode,
+          phone: document.getElementById('partner_phone').value,
+          address: document.getElementById('partner_address').value
+        };
+        
+        if (!partnerData.name || !partnerData.type || !partnerData.code) {
+          alert('Mohon isi semua kolom wajib (Nama, Tipe, Kode)');
+          return;
+        }
+        
+        fetch('/api/partners', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(partnerData)
+        })
+        .then(response => {
+          if (response.ok) {
+            return response.json();
+          }
+          return response.json().then(err => Promise.reject(err));
+        })
+        .then(data => {
+          const partnerSelect = document.getElementById('partnerSelect');
+          const option = document.createElement('option');
+          option.value = data.partner.id;
+          option.textContent = `${data.partner.name} (${data.partner.code}) - ${data.partner.type.replace('_', ' ').toUpperCase()}`;
+          option.selected = true;
+          partnerSelect.appendChild(option);
+          
+          document.getElementById('createProtocolBtn').disabled = false;
+          document.getElementById('cancelPartnerBtn').click();
+          
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500);
+          
+          showToast('Mitra berhasil dibuat!', 'success');
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          showToast(error.error || 'Error membuat mitra. Silakan coba lagi.', 'error');
+        });
+      });
+
+      document.addEventListener('DOMContentLoaded', function() {
+        initializeCharts();
+      });
+
+      function initializeCharts() {
+        const dailyTrendsCtx = document.getElementById('dailyTrendsChart').getContext('2d');
+        const dailyTrendsData = <%- JSON.stringify(analytics.dailyTrends) %>;
+        
+        new Chart(dailyTrendsCtx, {
+          type: 'line',
+          data: {
+            labels: dailyTrendsData.map(d => new Date(d.date).toLocaleDateString('id-ID')),
+            datasets: [{
+              label: 'Dibuat',
+              data: dailyTrendsData.map(d => d.created),
+              borderColor: '#106EBE',
+              backgroundColor: 'rgba(16, 110, 190, 0.1)',
+              tension: 0.4
+            }, {
+              label: 'Terkirim',
+              data: dailyTrendsData.map(d => d.delivered),
+              borderColor: '#48bb78',
+              backgroundColor: 'rgba(72, 187, 120, 0.1)',
+              tension: 0.4
+            }, {
+              label: 'Terpakai',
+              data: dailyTrendsData.map(d => d.terpakai),
+              borderColor: '#ed8936',
+              backgroundColor: 'rgba(237, 137, 54, 0.1)',
+              tension: 0.4
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: { legend: { position: 'top' } },
+            scales: { y: { beginAtZero: true } }
+          }
+        });
+
+        const hourlyCtx = document.getElementById('hourlyChart').getContext('2d');
+        const hourlyData = <%- JSON.stringify(analytics.hourlyDistribution) %>;
+        
+        new Chart(hourlyCtx, {
+          type: 'bar',
+          data: {
+            labels: Array.from({length: 24}, (_, i) => `${i}:00`),
+            datasets: [{
+              label: 'Protokol Dibuat',
+              data: Array.from({length: 24}, (_, i) => {
+                const hour = hourlyData.find(h => parseInt(h.hour) === i);
+                return hour ? hour.count : 0;
+              }),
+              backgroundColor: 'rgba(102, 126, 234, 0.6)',
+              borderColor: '#106EBE',
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true } }
+          }
+        });
+
+        const statusPieCtx = document.getElementById('statusPieChart').getContext('2d');
+        
+        new Chart(statusPieCtx, {
+          type: 'doughnut',
+          data: {
+            labels: ['Dibuat', 'Terkirim', 'Terpakai'],
+            datasets: [{
+              data: [<%= stats.created %>, <%= stats.delivered %>, <%= stats.terpakai %>],
+              backgroundColor: ['#106EBE', '#48bb78', '#ed8936'],
+              borderWidth: 2,
+              borderColor: '#fff'
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: { legend: { position: 'bottom' } }
+          }
+        });
+
+        const provinceCtx = document.getElementById('provinceChart').getContext('2d');
+        const provinceData = <%- JSON.stringify(analytics.provincePerformance || []) %>;
+
+        new Chart(provinceCtx, {
+          type: 'bar',
+          data: {
+            labels: provinceData.map(p => p.province_code),
+            datasets: [{
+              label: 'Jumlah Protokol',
+              data: provinceData.map(p => p.count),
+              backgroundColor: ['#106EBE', '#0d4f88', '#0FFCBE', '#48bb78', '#ed8936'],
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            indexAxis: 'y',
+            plugins: { legend: { display: false } },
+            scales: { x: { beginAtZero: true } }
+          }
+        });
+      }
+
+      const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+      const mobileNav = document.getElementById('mobileNav');
+      const mobileNavBackdrop = document.getElementById('mobileNavBackdrop');
+
+      if (mobileMenuToggle) {
+        mobileMenuToggle.addEventListener('click', function() {
+          this.classList.toggle('active');
+          mobileNav.classList.toggle('active');
+          mobileNavBackdrop.classList.toggle('active');
+          document.body.style.overflow = mobileNav.classList.contains('active') ? 'hidden' : '';
+        });
+
+        mobileNavBackdrop.addEventListener('click', function() {
+          mobileMenuToggle.classList.remove('active');
+          mobileNav.classList.remove('active');
+          this.classList.remove('active');
+          document.body.style.overflow = '';
+        });
+
+        const navLinks = mobileNav.querySelectorAll('a');
+        navLinks.forEach(link => {
+          link.addEventListener('click', function() {
+            mobileMenuToggle.classList.remove('active');
+            mobileNav.classList.remove('active');
+            mobileNavBackdrop.classList.remove('active');
+            document.body.style.overflow = '';
+          });
+        });
+      }
+    </script>
+  </body>
+</html>

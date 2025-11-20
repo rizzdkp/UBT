@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
+    <title>Scanner Barcode - Pelacak Protokol</title>
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#106EBE">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Scanner Protokol">
+    <link rel="apple-touch-icon" href="/icons/icon-152x152.svg">
+    
+    <link rel="stylesheet" href="/scanner.css" />
+    <link rel="stylesheet" href="/mobile-responsive.css" />
+    <link rel="stylesheet" href="/toast.css" />
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <!-- ZXing untuk decode gambar saja -->
+    <script src="https://unpkg.com/@zxing/library@0.20.0"></script>
+    <script src="https://unpkg.com/@zxing/browser@0.1.4"></script>
+</head>
+<body>
+    <div class="scanner-container">
+        <header class="scanner-header">
+            <div class="header-top">
+                <% if (typeof user !== 'undefined') { %>
+                    <div class="user-info">
+                        Masuk sebagai <strong><%= user.full_name || user.username %></strong>
+                        <% if (user.role === 'admin' || user.role === 'operator') { %>
+                            — <a href="/" class="back-link">📊 Dasbor</a>
+                        <% } %>
+                        | <a href="/logout" class="back-link">🚪 Keluar</a>
+                    </div>
+                <% } %>
+            </div>
+            <div class="header-title-section">
+                <h1>📱 Scanner Protokol</h1>
+                <p class="header-subtitle">Pindai kode QR untuk memperbarui status protokol</p>
+            </div>
+        </header>
+
+        <!-- Antarmuka Scanner -->
+        <div class="scanner-section">
+            <div id="qr-reader" class="qr-reader" style="display: none;"></div>
+            <div class="scanner-controls">
+                <button id="start-scan" class="btn-scan">🔍 MULAI PINDAI</button>
+                <button id="stop-scan" class="btn-stop" style="display: none;">⏹️ BERHENTI PINDAI</button>
+                <input type="file" id="image-file" accept="image/*" style="display:none" />
+                <button id="pick-image" class="btn-secondary">🖼️ Pilih Gambar</button>
+            </div>
+            
+            <!-- Input Manual Alternatif -->
+            <div class="manual-input">
+                <h3>Atau Masukkan Kode Secara Manual</h3>
+                <div class="input-group">
+                    <input type="text" id="manual-code" placeholder="Masukkan kode secara manual..." />
+                    <button id="submit-manual" class="btn-submit">CEK KODE</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hasil Pemindaian -->
+        <div id="scan-result" class="scan-result" style="display: none;">
+            <div class="result-card">
+                <h3>📦 Hasil Pemindaian</h3>
+                <div id="result-content"></div>
+                <div class="action-buttons" id="action-buttons" style="display: none;">
+                    <button id="mark-terpakai" class="btn-action btn-terpakai">✅ Tandai Sebagai Terpakai</button>
+                    <button id="mark-delivered" class="btn-action btn-delivered">🚚 Tandai Sebagai Terkirim</button>
+                    <button id="scan-another" class="btn-action btn-secondary">🔄 Pindai Lagi</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Overlay Loading -->
+        <div id="loading" class="loading-overlay" style="display: none;">
+            <div class="spinner"></div>
+            <p>Memproses...</p>
+        </div>
+
+        <!-- Pesan Toast -->
+        <div id="toast" class="toast"></div>
+    </div>
+
+    <script>
+    let html5QrcodeScanner = null;
+    let imageReader = null; // ZXing reader untuk decode gambar saja
+    let isScanning = false;
+
+    function initScanner() {
+        html5QrcodeScanner = new Html5QrcodeScanner(
+            "qr-reader",
+            { 
+                fps: 10, 
+                qrbox: { width: 250, height: 250 },
+                aspectRatio: 1.0,
+                showTorchButtonIfSupported: true,
+                showZoomSliderIfSupported: true
+            },
+            false
+        );
+    }
+
+    // Callback untuk html5-qrcode
+    function onScanSuccess(decodedText, decodedResult) {
+        try { stopScanning(); } catch(_) {}
+        if (decodedText) {
+            processCode(decodedText.trim());
+        }
+    }
+    
+    function onScanFailure(error) {
+        // Tidak menampilkan error untuk menjaga UI tetap smooth
+    }
+
+    function startScanning() {
+        const qrReaderDiv = document.getElementById('qr-reader');
+        
+        // Tampilkan QR reader dengan transisi halus
+        qrReaderDiv.style.display = 'block';
+        qrReaderDiv.style.opacity = '0';
+        qrReaderDiv.style.transition = 'opacity 0.3s ease';
+        
+        setTimeout(() => {
+            qrReaderDiv.style.opacity = '1';
+        }, 10);
+        
+        if (!html5QrcodeScanner) initScanner();
+        html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+        isScanning = true;
+        
+        document.getElementById('start-scan').style.display = 'none';
+        document.getElementById('stop-scan').style.display = 'inline-block';
+    }
+
+    function stopScanning() {
+        const qrReaderDiv = document.getElementById('qr-reader');
+        
+        if (html5QrcodeScanner) {
+            html5QrcodeScanner.clear();
+            isScanning = false;
+            
+            // Sembunyikan QR reader dengan transisi halus
+            qrReaderDiv.style.opacity = '0';
+            setTimeout(() => {
+                qrReaderDiv.style.display = 'none';
+            }, 300);
+            
+            document.getElementById('start-scan').style.display = 'inline-block';
+            document.getElementById('stop-scan').style.display = 'none';
+        }
+    }
+
+    // Proses kode yang dipindai/dimasukkan
+    async function processCode(rawCode) {
+        const code = (rawCode || '').trim();
+        if (!code) {
+            showToast('Kode kosong', 'error');
+            return;
+        }
+        showLoading(true);
+        try {
+            const res = await fetch(`/scan/${encodeURIComponent(code)}`);
+            const isJson = (res.headers.get('content-type') || '').includes('application/json');
+            const data = isJson ? await res.json() : { error: await res.text() };
+            showLoading(false);
+            if (!res.ok || data.error) {
+                showToast(data.error || `Kode tidak ditemukan (${res.status})`, 'error');
+                return;
+            }
+            displayResult(data);
+        } catch (err) {
+            showLoading(false);
+            showToast('Gagal memeriksa kode. Periksa koneksi internet Anda.', 'error');
+        }
+    }
+
+    // Tampilkan hasil pemindaian
+    function displayResult(protocol) {
+        const resultContent = document.getElementById('result-content');
+        const actionButtons = document.getElementById('action-buttons');
+        
+        const statusText = {
+            'created': 'DIBUAT',
+            'delivered': 'TERKIRIM',
+            'terpakai': 'TERPAKAI'
+        };
+        
+        resultContent.innerHTML = `
+            <div class="protocol-info">
+                <div class="info-row">
+                    <span class="label">Kode:</span>
+                    <span class="value">${protocol.code}</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Provinsi:</span>
+                    <span class="value">${protocol.province_code}</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Dibuat:</span>
+                    <span class="value">${protocol.created_at_formatted}</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Status Saat Ini:</span>
+                    <span class="value status-${protocol.status}">${statusText[protocol.status] || protocol.status.toUpperCase()}</span>
+                </div>
+            </div>
+        `;
+        
+        // Tampilkan tombol aksi hanya jika belum terpakai
+        if (protocol.status !== 'terpakai') {
+            actionButtons.style.display = 'block';
+            
+            // Simpan kode saat ini untuk aksi
+            document.getElementById('mark-terpakai').onclick = () => confirmAction(protocol.code, 'mark_terpakai');
+            document.getElementById('mark-delivered').onclick = () => confirmAction(protocol.code, 'mark_delivered');
+        } else {
+            actionButtons.style.display = 'none';
+            showToast('Protokol ini sudah ditandai sebagai terpakai', 'info');
+        }
+        
+        document.getElementById('scan-result').style.display = 'block';
+    }
+
+    // Konfirmasi aksi sebelum memperbarui
+    function confirmAction(code, action) {
+        const actionText = action === 'mark_terpakai' ? 'TERPAKAI' : 'TERKIRIM';
+        
+        if (confirm(`Apakah Anda yakin ingin menandai protokol ini sebagai ${actionText}?`)) {
+            updateStatus(code, action);
+        }
+    }
+
+    // Perbarui status protokol
+    function updateStatus(code, action) {
+        showLoading(true);
+        
+        fetch(`/api/confirm-usage/${code}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ action })
+        })
+        .then(response => response.json())
+        .then(data => {
+            showLoading(false);
+            if (data.success) {
+                showToast(data.message, 'success');
+                displayResult(data.protocol); // Refresh tampilan
+            } else {
+                showToast(data.error || 'Gagal memperbarui status', 'error');
+            }
+        })
+        .catch(error => {
+            showLoading(false);
+            showToast('Error saat memperbarui status', 'error');
+        });
+    }
+
+    // Tampilkan/sembunyikan loading
+    function showLoading(show) {
+        document.getElementById('loading').style.display = show ? 'flex' : 'none';
+    }
+
+    // Tampilkan pesan toast
+    function showToast(message, type = 'info') {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.className = `toast toast-${type} show`;
+        
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3000);
+    }
+
+    // Event listeners
+    document.getElementById('start-scan').addEventListener('click', startScanning);
+    document.getElementById('stop-scan').addEventListener('click', stopScanning);
+    
+    // Pilih gambar dari galeri dan decode dengan ZXing
+    const pickBtn = document.getElementById('pick-image');
+    const fileInput = document.getElementById('image-file');
+    if (pickBtn && fileInput) {
+        pickBtn.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files && e.target.files[0];
+            if (!file) return;
+            
+            // Hentikan pemindaian langsung untuk membebaskan kamera
+            try { stopScanning(); } catch (_) {}
+            showLoading(true);
+            
+            try {
+                if (!imageReader) imageReader = new ZXingBrowser.BrowserMultiFormatReader();
+                const img = new Image();
+                
+                img.onload = async () => {
+                    try {
+                        const result = await imageReader.decodeFromImageElement(img);
+                        showLoading(false);
+                        if (result && result.getText()) {
+                            processCode(result.getText().trim());
+                        } else {
+                            showToast('Tidak bisa membaca barcode dari gambar', 'error');
+                        }
+                    } catch (err) {
+                        showLoading(false);
+                        console.error(err);
+                        showToast('Gagal membaca barcode dari gambar', 'error');
+                    } finally {
+                        URL.revokeObjectURL(img.src);
+                        e.target.value = '';
+                    }
+                };
+                
+                img.onerror = () => {
+                    showLoading(false);
+                    showToast('File gambar tidak valid', 'error');
+                };
+                
+                img.src = URL.createObjectURL(file);
+            } catch (err) {
+                showLoading(false);
+                console.error(err);
+                showToast('Terjadi kesalahan saat memproses gambar', 'error');
+            }
+        });
+    }
+    
+    document.getElementById('submit-manual').addEventListener('click', () => {
+        const code = document.getElementById('manual-code').value.trim();
+        if (code) {
+            processCode(code);
+        } else {
+            showToast('Mohon isi kode terlebih dahulu', 'error');
+        }
+    });
+
+    document.getElementById('manual-code').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            document.getElementById('submit-manual').click();
+        }
+    });
+
+    document.getElementById('scan-another').addEventListener('click', () => {
+        document.getElementById('scan-result').style.display = 'none';
+        document.getElementById('manual-code').value = '';
+        startScanning();
+    });
+
+    // Inisialisasi saat load
+    initScanner();
+
+    // Unregister Service Worker lama dari Vercel
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            for(let registration of registrations) {
+                registration.unregister().then(function(success) {
+                    console.log('SW unregistered:', success);
+                });
+            }
+        });
+        // Hapus semua cache
+        caches.keys().then(function(names) {
+            for (let name of names) {
+                caches.delete(name);
+            }
+        });
+    }
+    </script>
+    <script src="/toast.js"></script>
+</body>
+</html>
