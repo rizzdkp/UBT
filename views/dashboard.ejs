@@ -619,10 +619,10 @@
                   <th>TIPE</th>
                   <th>PROVINSI</th>
                   <th>TOTAL</th>
-                  <th>RINCIAN STATUS</th>
                   <th>DIGUNAKAN</th>
                   <th>TINGKAT PENGGUNAAN</th>
                   <th>AKTIVITAS TERAKHIR</th>
+                  <th>RINCIAN STATUS</th>
                 </tr>
               </thead>
               <tbody>
@@ -632,29 +632,19 @@
                     const createdCount = partner.created_count || 0;
                     const deliveredCount = partner.delivered_count || 0;
                     const terpakaiCount = partner.terpakai_count || 0;
-                    
-                    // Dummy patient names
-                    const dummyPatients = [
-                      'Ahmad Sudirman', 
-                      'Siti Nurhaliza', 
-                      'Budi Santoso', 
-                      'Dewi Kartika',
-                      'Eko Prasetyo',
-                      null,
-                      'Rina Wijaya'
-                    ];
-                    const dummyPatient = dummyPatients[index % dummyPatients.length];
                   %>
                   <tr>
                     <td>
-                      <strong><%= partner.partner_name %></strong>
-                      <br><code style="font-size: 10px; color: #6b7280;"><%= partner.partner_code %></code>
+                      <div class="partner-info">
+                        <strong><%= partner.partner_name %></strong>
+                        <br><small><%= partner.partner_code %></small>
+                      </div>
                     </td>
                     <td>
-                      <% if (dummyPatient) { %>
-                        <span style="color: #059669; font-weight: 600;">👤 <%= dummyPatient %></span>
+                      <% if (partner.patient_name) { %>
+                        <strong><%= partner.patient_name %></strong>
                       <% } else { %>
-                        <span style="color: #9ca3af; font-style: italic; font-size: 12px;">- Belum ada pasien -</span>
+                        <span style="color: #999;">-</span>
                       <% } %>
                     </td>
                     <td>
@@ -664,7 +654,16 @@
                     </td>
                     <td><strong><%= partner.province_code %></strong></td>
                     <td><strong style="font-size: 16px;"><%= partner.total_protocols %></strong></td>
+                    <td><%= partner.used_protocols || 0 %></td>
                     <td>
+                      <div class="usage-bar">
+                        <div class="usage-fill" style="width: <%= partner.usage_rate || 0 %>%"></div>
+                        <span class="usage-text"><%= partner.usage_rate || 0 %>%</span>
+                      </div>
+                    </td>
+                    <td><%= partner.last_activity || '-' %></td>
+                    <td>
+                      <!-- RINCIAN STATUS - sekarang di posisi terakhir -->
                       <div class="status-breakdown">
                         <% if (createdCount > 0) { %>
                           <span class="status-breakdown-badge created">
@@ -685,19 +684,6 @@
                           <span style="color: #9ca3af; font-size: 12px;">-</span>
                         <% } %>
                       </div>
-                    </td>
-                    <td><%= partner.used_protocols %></td>
-                    <td>
-                      <div class="usage-indicator">
-                        <div class="usage-bar">
-                          <div class="usage-fill <%= partner.usage_rate >= 75 ? 'high' : partner.usage_rate >= 50 ? 'medium' : 'low' %>" 
-                               style="width: <%= partner.usage_rate %>%"></div>
-                        </div>
-                        <span><%= partner.usage_rate %>%</span>
-                      </div>
-                    </td>
-                    <td>
-                      <small><%= partner.last_activity ? new Date(partner.last_activity).toLocaleDateString('id-ID') : 'Tidak Pernah' %></small>
                     </td>
                   </tr>
                   <% }) %>

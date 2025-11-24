@@ -289,6 +289,25 @@ db.serialize(() => {
     }
   });
   
+  // Check if patient_name column exists in protocols table, if not add it
+  db.all("PRAGMA table_info(protocols)", (err, columns) => {
+    if (!err && columns) {
+      const hasPatientName = columns.some(col => col.name === 'patient_name');
+      if (!hasPatientName) {
+        console.log('Adding patient_name column to protocols table...');
+        db.run('ALTER TABLE protocols ADD COLUMN patient_name TEXT', (alterErr) => {
+          if (alterErr) {
+            console.log('Note: Could not add patient_name column:', alterErr.message);
+          } else {
+            console.log('Successfully added patient_name column');
+          }
+        });
+      } else {
+        console.log('patient_name column already exists in protocols table');
+      }
+    }
+  });
+  
   // Protocols table (updated with partner_id)
   db.run(
     `CREATE TABLE IF NOT EXISTS protocols (
@@ -641,7 +660,11 @@ function getAdvancedAnalytics(callback) {
           pt.type as partner_type,
           pt.code as partner_code,
           pt.province_code,
+          p.patient_name,
           COUNT(p.id) as total_protocols,
+          SUM(CASE WHEN p.status = 'created' THEN 1 ELSE 0 END) as created_count,
+          SUM(CASE WHEN p.status = 'delivered' THEN 1 ELSE 0 END) as delivered_count,
+          SUM(CASE WHEN p.status = 'terpakai' THEN 1 ELSE 0 END) as terpakai_count,
           SUM(CASE WHEN p.status = 'terpakai' THEN 1 ELSE 0 END) as used_protocols,
           ROUND(
             (SUM(CASE WHEN p.status = 'terpakai' THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(p.id), 0)), 2
@@ -1373,7 +1396,12 @@ app.get('/scanner', requireAuth, (req, res) => {
 // API endpoint to confirm status change from scanner (all authenticated users)
 app.post('/api/confirm-usage/:code', requireAuth, (req, res) => {
   const { code } = req.params;
-  const { action } = req.body; // 'mark_terpakai' or 'mark_delivered'
+  const { action, patient_name } = req.body; // 'mark_terpakai' or 'mark_delivered'
+  
+  // Validasi nama pasien
+  if (!patient_name || patient_name.trim() === '') {
+    return res.status(400).json({ error: 'Nama pasien harus diisi' });
+  }
   
   // First check if code exists
   db.get('SELECT * FROM protocols WHERE code = ?', [code], (err, row) => {
@@ -1383,34 +1411,40 @@ app.post('/api/confirm-usage/:code', requireAuth, (req, res) => {
     let newStatus = 'terpakai';
     if (action === 'mark_delivered') newStatus = 'delivered';
     
-    // Update status
-    db.run('UPDATE protocols SET status = ? WHERE code = ?', [newStatus, code], function (err) {
-      if (err) return res.status(500).json({ error: 'Failed to update status' });
-      
-      // Log activity
-      if (req.user && req.user.id) {
-        const ip = req.ip || req.connection.remoteAddress;
-        const userAgent = req.get('User-Agent');
-        db.run(
-          `INSERT INTO activity_logs (user_id, action, target_type, target_id, details, ip_address, user_agent)
-           VALUES (?, ?, ?, ?, ?, ?, ?)`,
-          [req.user.id, `scan_${newStatus}`, 'protocol', code, `Scanned and marked as ${newStatus}`, ip, userAgent]
-        );
+    // Update status with patient_name
+    db.run(
+      'UPDATE protocols SET status = ?, patient_name = ?, updated_by = ? WHERE code = ?', 
+      [newStatus, patient_name.trim(), req.user?.id || req.session.userId, code], 
+      function (err) {
+        if (err) return res.status(500).json({ error: 'Failed to update status' });
+        
+        // Log activity with patient name
+        if (req.user && req.user.id) {
+          const ip = req.ip || req.connection.remoteAddress;
+          const userAgent = req.get('User-Agent');
+          db.run(
+            `INSERT INTO activity_logs (user_id, action, target_type, target_id, details, ip_address, user_agent, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [req.user.id, `scan_${newStatus}`, 'protocol', code, 
+             `Scanned and marked as ${newStatus} for patient: ${patient_name.trim()}`, 
+             ip, userAgent, getWIBTimestamp()]
+          );
+        }
+        
+        // Emit real-time update to dashboard
+        io.emit('status_updated', { 
+          code: code, 
+          newStatus: newStatus,
+          protocol: { ...row, status: newStatus, patient_name: patient_name.trim() }
+        });
+        
+        res.json({ 
+          success: true, 
+          message: `Status diperbarui menjadi ${newStatus} untuk pasien ${patient_name.trim()}`,
+          protocol: { ...row, status: newStatus, patient_name: patient_name.trim() }
+        });
       }
-      
-      // Emit real-time update to dashboard
-      io.emit('status_updated', { 
-        code: code, 
-        newStatus: newStatus,
-        protocol: { ...row, status: newStatus }
-      });
-      
-      res.json({ 
-        success: true, 
-        message: `Status updated to ${newStatus}`,
-        protocol: { ...row, status: newStatus }
-      });
-    });
+    );
   });
 });
 
