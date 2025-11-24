@@ -660,7 +660,7 @@ function getAdvancedAnalytics(callback) {
           pt.type as partner_type,
           pt.code as partner_code,
           pt.province_code,
-          p.patient_name,
+          (SELECT patient_name FROM protocols WHERE partner_id = pt.id AND patient_name IS NOT NULL ORDER BY created_at DESC LIMIT 1) as patient_name,
           COUNT(p.id) as total_protocols,
           SUM(CASE WHEN p.status = 'created' THEN 1 ELSE 0 END) as created_count,
           SUM(CASE WHEN p.status = 'delivered' THEN 1 ELSE 0 END) as delivered_count,
