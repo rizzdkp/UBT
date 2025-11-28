@@ -115,6 +115,25 @@
         cursor: not-allowed;
       }
       
+      #openScannerBtn {
+        display: inline-block;
+        text-align: center;
+        background: linear-gradient(135deg, #9C27B0, #E91E63);
+        color: #fff;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        margin-top: 12px;
+        width: 100%;
+        text-decoration: none;
+      }
+      #openScannerBtn:hover {
+        filter: brightness(0.95);
+      }
+      
       .metrics-grid {
         display: flex;
         gap: 15px;
@@ -377,7 +396,7 @@
           </div>
           <nav class="navigation-links">
             <a href="/dashboard">📊 Dasbor</a>
-            <a href="/partners">🏢 Mitra</a>
+            <a href="/produsen">🧾 Buat Protokol</a>
             <% if (user.role === 'admin') { %>
               <a href="/users">👥 Pengguna</a>
             <% } %>
@@ -393,92 +412,74 @@
           <span></span>
           <span></span>
         </button>
-        <h1>Dasbor Protokol Barcode</h1>
+        <h1 class="header-title"><span class="brand-badge">▦</span> Dasbor Protokol Barcode</h1>
         <div class="user">
           Masuk sebagai <strong><%= user.full_name || user %></strong> 
           <% if (user.role) { %>(<%= user.role %>)<% } %> — 
-          <a href="/partners">Mitra</a> |
+          <a href="/produsen">Buat Protokol</a> |
+          <a href="/scanner">Scanner</a> |
           <% if (user.role === 'admin') { %>
             <a href="/users">Pengguna</a> | 
           <% } %>
           <a href="/logout">Keluar</a>
+          <% if (user.role === 'admin' || user.role === 'operator') { %>
+            <button id="partnerDropdownToggle" class="btn-primary" style="margin-left:10px; padding:6px 12px; font-size:12px;">📋 Mitra</button>
+            <div id="partnerDropdown" class="partner-dropdown">
+              <div class="pd-header">
+                <strong>Daftar Mitra</strong>
+                <button type="button" id="closePartnerDropdown" aria-label="Tutup">✕</button>
+              </div>
+              <div class="pd-body" id="partnerListContainer">
+                <div class="pd-loading">Memuat mitra...</div>
+              </div>
+              <div class="pd-footer"><small>Max 200 terbaru • Klik hapus untuk menghapus</small></div>
+            </div>
+          <% } %>
         </div>
       </header>
 
       <section>
-        <h2>Buat Protokol</h2>
-        <form method="post" action="/protocols" id="protocolForm">
-          <div class="form-row">
-            <div class="form-group">
-              <label for="province">Provinsi</label>
-              <select name="province" id="provinceSelect" required>
-                <option value="">Pilih Provinsi</option>
-                <% provinces.forEach(function(p){ %>
-                <option value="<%= p.code %>"><%= p.name %> (<%= p.code %>)</option>
-                <% }) %>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="partner">Mitra</label>
-              <select name="partner_id" id="partnerSelect" required disabled>
-                <option value="">Pilih Provinsi Terlebih Dahulu</option>
-              </select>
-            </div>
+        <style>
+          .header-title{display:flex;align-items:center;gap:10px}
+          .brand-badge{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#E91E63 0%,#9C27B0 100%);color:#fff;box-shadow:0 4px 12px rgba(233,30,99,.35)}
+          .partner-dropdown { position: absolute; top:70px; right:20px; width:340px; background:#fff; border:2px solid #E91E63; border-radius:14px; box-shadow:0 12px 32px rgba(233,30,99,.25); padding:10px 0; display:none; z-index:1000; }
+          .partner-dropdown.show { display:block; animation:fadeIn .18s ease; }
+          @keyframes fadeIn { from { opacity:0; transform:translateY(-6px);} to { opacity:1; transform:translateY(0);} }
+          .pd-header { display:flex; justify-content:space-between; align-items:center; padding:6px 14px 10px; border-bottom:1px solid #fce4ec; }
+          .pd-header strong { font-size:14px; color:#C2185B; }
+          .pd-header button { background:none; border:none; cursor:pointer; font-size:14px; color:#9C27B0; font-weight:700; }
+          .pd-body { max-height:320px; overflow-y:auto; }
+          .pd-item { display:flex; gap:10px; align-items:flex-start; padding:10px 14px; border-bottom:1px solid #f8d5e4; }
+          .pd-item:last-child { border-bottom:none; }
+          .pd-name { font-weight:600; font-size:13px; color:#2d3748; }
+          .pd-meta { font-size:11px; color:#6b7280; }
+          .pd-delete { margin-left:auto; background:linear-gradient(135deg,#ef4444,#dc2626); color:#fff; border:none; border-radius:6px; padding:4px 8px; font-size:11px; font-weight:700; cursor:pointer; box-shadow:0 2px 6px rgba(220,38,38,.4); }
+          .pd-delete:hover { background:linear-gradient(135deg,#dc2626,#b91c1c); }
+          .pd-empty { padding:30px 20px; text-align:center; font-size:12px; color:#6b7280; }
+          .pd-loading { padding:30px 20px; text-align:center; font-size:12px; color:#C2185B; }
+          .pd-footer { padding:8px 14px 4px; border-top:1px solid #fce4ec; text-align:right; font-size:10px; color:#9c4a7d; }
+          @media (max-width:640px){ .partner-dropdown { position:fixed; top:90px; right:10px; left:10px; width:auto; } }
+          .protocol-cta { background: linear-gradient(180deg, #FDE2F3 0%, #F8BBD0 60%, #FCE4EC 100%); border: 2px solid rgba(233, 30, 99, 0.6); border-radius: 12px; padding: 22px; text-align: center; box-shadow: 0 8px 24px rgba(233, 30, 99, 0.12); }
+          .protocol-cta__header { display: flex; align-items: center; justify-content: center; gap: 10px; color:#7b1fa2; font-weight: 800; font-size: 20px; }
+          .protocol-cta__icon { font-size: 22px; }
+          .protocol-cta__divider { margin: 14px auto; height: 2px; width: 85%; background: linear-gradient(90deg, #E91E63, #9C27B0); border: none; opacity: .55; }
+          .protocol-cta__subtitle { margin: 8px 0 16px; color:#6b7280; font-size: 14px; }
+          .protocol-cta__actions { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+          .protocol-cta__btn { text-decoration:none; }
+          .protocol-cta__btn--ghost { background:#ffffff; color:#7b1fa2; border:1px solid #e9a3c1; }
+          @media (max-width: 640px) { .protocol-cta__header { font-size: 18px; } .protocol-cta__divider { width: 100%; } }
+        </style>
+        <div class="protocol-cta">
+          <div class="protocol-cta__header">
+            <span class="protocol-cta__icon">📦</span>
+            <span>Buat Protokol Baru</span>
           </div>
-          
-          <div class="form-row">
-            <div class="form-group">
-              <label for="quantity">Jumlah</label>
-              <input type="number" name="quantity" id="quantityInput" min="1" max="100" value="1" required>
-              <small style="color: #666; font-size: 12px;">Jumlah kode QR yang akan dibuat (1-100)</small>
-            </div>
+          <hr class="protocol-cta__divider" />
+          <p class="protocol-cta__subtitle">Generate kode QR untuk protokol tracking/pelaporan yang akan didistribusikan ke mitra</p>
+          <div class="protocol-cta__actions">
+            <a href="/produsen" class="btn-primary protocol-cta__btn">＋ Buat Protokol Baru</a>
           </div>
-          
-          <div class="form-group" id="addPartnerSection" style="display: none;">
-            <button type="button" id="addPartnerBtn" class="btn-secondary">
-              + Tambah Mitra Baru untuk Provinsi yang Dipilih
-            </button>
-          </div>
-          
-          <div id="newPartnerForm" style="display: none;" class="new-partner-form">
-            <h3>Tambah Mitra Baru</h3>
-            <div class="form-row">
-              <div class="form-group">
-                <label for="partner_name">Nama Mitra</label>
-                <input type="text" id="partner_name" name="partner_name" placeholder="Nama mitra">
-              </div>
-              <div class="form-group">
-                <label for="partner_type">Tipe Mitra</label>
-                <select id="partner_type" name="partner_type">
-                  <option value="">Pilih Tipe</option>
-                  <option value="klinik">Klinik</option>
-                  <option value="puskesmas">Puskesmas</option>
-                  <option value="rumah_sakit">Rumah Sakit</option>
-                </select>
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label for="partner_code">Kode Mitra</label>
-                <input type="text" id="partner_code" name="partner_code" placeholder="Contoh: KLN001" maxlength="10">
-              </div>
-              <div class="form-group">
-                <label for="partner_phone">Telepon (Opsional)</label>
-                <input type="tel" id="partner_phone" name="partner_phone" placeholder="Nomor telepon">
-              </div>
-            </div>
-            <div class="form-group">
-              <label for="partner_address">Alamat (Opsional)</label>
-              <textarea id="partner_address" name="partner_address" rows="2" placeholder="Alamat"></textarea>
-            </div>
-            <div class="form-actions">
-              <button type="button" id="cancelPartnerBtn" class="btn-secondary">Batal</button>
-              <button type="button" id="savePartnerBtn" class="btn-primary">Simpan & Gunakan Mitra</button>
-            </div>
-          </div>
-          
-          <button type="submit" id="createProtocolBtn" disabled>Buat Protokol & Generate Kode QR</button>
-        </form>
+        </div>
       </section>
 
       <section>
@@ -615,7 +616,7 @@
               <thead>
                 <tr>
                   <th>MITRA</th>
-                  <th>NAMA PASIEN</th>
+                  <th>Data Pasien</th>
                   <th>TIPE</th>
                   <th>PROVINSI</th>
                   <th>TOTAL</th>
@@ -640,12 +641,15 @@
                         <br><small><%= partner.partner_code %></small>
                       </div>
                     </td>
-                    <td>
-                      <% if (partner.patient_name) { %>
-                        <strong><%= partner.patient_name %></strong>
-                      <% } else { %>
-                        <span style="color: #999;">-</span>
-                      <% } %>
+                    <td class="patient-name-cell">
+                      <button class="btn-primary btn-sm" 
+                              data-partner-id="<%= partner.partner_id || partner.id || '' %>"
+                              onclick="openPatientModal(this.dataset.partnerId)">
+                        <span style="margin-right:6px;">👤</span> LIHAT DETAIL
+                      </button>
+                      <span class="patient-info-badge" style="margin-left:10px; color:#333;">
+                        <%= partner.patient_name || '-' %>
+                      </span>
                     </td>
                     <td>
                       <span class="type-badge type-<%= partner.partner_type %>">
@@ -686,6 +690,7 @@
                       </div>
                     </td>
                   </tr>
+                  
                   <% }) %>
                 <% } else { %>
                   <tr>
@@ -744,6 +749,30 @@
           @media (max-width: 768px) {
             .protocols-table { min-width: 800px; }
             .protocols-table .barcode-cell img { max-width: 180px; }
+          }
+        </style>
+        <style>
+          /* Patient Modal Styles */
+          .patient-modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: none; align-items: center; justify-content: center; z-index: 1000; }
+          .patient-modal { width: 92%; max-width: 860px; background: #fff; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,.25); overflow: hidden; }
+          .patient-modal__header { background: linear-gradient(135deg, #E91E63, #9C27B0); color: #fff; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; }
+          .patient-modal__title { font-weight: 800; font-size: 16px; display: flex; align-items: center; gap: 10px; }
+          .patient-modal__close { background: rgba(255,255,255,.2); border: none; border-radius: 9999px; color: #fff; width: 32px; height: 32px; cursor: pointer; }
+          .patient-modal__body { padding: 18px 20px; }
+          .patient-modal__name { font-size: 20px; font-weight: 800; color: #e91e63; margin: 0 0 4px 0; }
+          .patient-modal__code { margin: 0; color: #6b7280; font-size: 12px; }
+          .patient-modal__divider { border: none; height: 2px; background: linear-gradient(90deg, #E91E63, #9C27B0); margin: 12px 0; opacity: .4; }
+          .patient-modal__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+          .patient-badge { background: #fff; border: 1px solid #f3d1ff; border-radius: 10px; padding: 10px 12px; }
+          .patient-badge__label { font-size: 11px; color: #9c27b0; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; margin: 0 0 4px 0; }
+          .patient-badge__value { font-size: 14px; font-weight: 600; color: #333; margin: 0; }
+          .patient-modal__gpa { margin-top: 12px; background: #ffe4f1; border: 1px solid #f7b2d6; border-radius: 10px; padding: 10px 12px; }
+          .patient-modal__gpa-title { font-size: 12px; font-weight: 700; color: #e91e63; margin: 0 0 8px 0; }
+          .patient-modal__gpa-grid { display: flex; gap: 10px; }
+          .patient-modal__footer { display: flex; gap: 12px; margin-top: 12px; }
+          @media (max-width: 640px) {
+            .patient-modal__grid { grid-template-columns: 1fr; }
+            .patient-modal { width: 96%; }
           }
         </style>
         <% 
@@ -890,7 +919,92 @@
         }, 3000);
       }
 
-      document.getElementById('periodSelect').addEventListener('change', function() {
+      // Patient detail modal implementation
+      const _patientModal = document.createElement('div');
+      _patientModal.id = 'patientModal';
+      _patientModal.className = 'patient-modal-backdrop';
+      _patientModal.innerHTML = `
+        <div class="patient-modal" role="dialog" aria-modal="true" aria-labelledby="patientModalTitle">
+          <div class="patient-modal__header">
+            <div id="patientModalTitle" class="patient-modal__title">🩺 Data Pasien OBGYN</div>
+            <button id="patientClose" class="patient-modal__close" aria-label="Tutup">✕</button>
+          </div>
+          <div id="patientBody" class="patient-modal__body">
+            <div id="p_name" class="patient-modal__name">-</div>
+            <p id="p_code" class="patient-modal__code">Kode Protokol: -</p>
+            <hr class="patient-modal__divider"/>
+            <div id="p_grid" class="patient-modal__grid"></div>
+            <div class="patient-modal__gpa">
+              <div class="patient-modal__gpa-title">GPA (Gravida - Para - Abortus)</div>
+              <div id="p_gpa" class="patient-modal__gpa-grid"></div>
+            </div>
+            <div id="p_footer" class="patient-modal__footer"></div>
+          </div>
+        </div>`;
+      document.body.appendChild(_patientModal);
+
+      function closePatientModal(){ _patientModal.style.display = 'none'; }
+      document.addEventListener('click', (e)=>{
+        if (e.target && (e.target.id === 'patientClose' || e.target.id === 'patientModal')) closePatientModal();
+      });
+
+      function _badge(label, val){
+        return `
+          <div class=\"patient-badge\">
+            <div class=\"patient-badge__label\">${label}</div>
+            <div class=\"patient-badge__value\">${val || '-'} </div>
+          </div>`;
+      }
+
+      async function openPatientModal(partnerId){
+        if(!partnerId){ return; }
+        _patientModal.style.display = 'flex';
+        document.getElementById('p_name').textContent = 'Memuat...';
+        document.getElementById('p_code').textContent = 'Kode Protokol: -';
+        document.getElementById('p_grid').innerHTML = '';
+        document.getElementById('p_gpa').innerHTML = '';
+        document.getElementById('p_footer').innerHTML = '';
+        try {
+          const res = await fetch(`/api/patient/partner/${partnerId}`);
+          const data = await res.json();
+          if (!data){
+            document.getElementById('p_name').textContent = 'Belum ada data pasien';
+            document.getElementById('p_footer').innerHTML = `<a href="/scanner" class="btn-primary" style="text-decoration:none;">📱 Isi Data via Scanner</a>`;
+            return;
+          }
+          document.getElementById('p_name').textContent = data.patient_name || '-';
+          document.getElementById('p_code').textContent = `Kode Protokol: ${data.protocol_code || '-'}`;
+          document.getElementById('p_grid').innerHTML = [
+            _badge('Nama Faskes', data.faskes_name),
+            _badge('Pekerjaan', data.pekerjaan),
+            _badge('Status Pekerjaan', data.status_pekerjaan),
+            _badge('Status Pernikahan', data.status_pernikahan),
+            _badge('Provinsi', data.provinsi),
+            _badge('Kabupaten/Kota', data.kabupaten),
+            _badge('Alamat Lengkap', data.alamat),
+            _badge('Tindakan Medis', data.tindakan)
+          ].join('');
+          document.getElementById('p_gpa').innerHTML = [
+            _badge('Gravida (G)', data.gpa_gravida),
+            _badge('Para (P)', data.gpa_para),
+            _badge('Abortus (A)', data.gpa_abortus)
+          ].join('');
+          const when = (data.updated_at || data.created_at || '').toString().replace('T',' ').slice(0,19);
+          document.getElementById('p_footer').innerHTML = [
+            _badge('Tenaga Kesehatan', data.tenaga_kesehatan),
+            _badge('Data Dibuat', when)
+          ].join('');
+        } catch (e){
+          document.getElementById('p_name').textContent = 'Gagal memuat data';
+        }
+      }
+      // Close with Escape
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closePatientModal();
+      });
+
+      const _periodSelect = document.getElementById('periodSelect');
+      if (_periodSelect) _periodSelect.addEventListener('change', function() {
         const customDateRange = document.querySelector('.custom-date-range');
         if (this.value === 'custom') {
           customDateRange.style.display = 'block';
@@ -899,7 +1013,8 @@
         }
       });
 
-      document.getElementById('provinceSelect').addEventListener('change', function() {
+      const _provinceSelect = document.getElementById('provinceSelect');
+      if (_provinceSelect) _provinceSelect.addEventListener('change', function() {
         const provinceCode = this.value;
         const partnerSelect = document.getElementById('partnerSelect');
         const addPartnerSection = document.getElementById('addPartnerSection');
@@ -934,27 +1049,31 @@
           });
       });
       
-      document.getElementById('partnerSelect').addEventListener('change', function() {
+      const _partnerSelect = document.getElementById('partnerSelect');
+      if (_partnerSelect) _partnerSelect.addEventListener('change', function() {
         const createBtn = document.getElementById('createProtocolBtn');
-        createBtn.disabled = !this.value;
+        if (createBtn) createBtn.disabled = !this.value;
       });
       
-      document.getElementById('addPartnerBtn').addEventListener('click', function() {
-        document.getElementById('newPartnerForm').style.display = 'block';
+      const _addPartnerBtn = document.getElementById('addPartnerBtn');
+      if (_addPartnerBtn) _addPartnerBtn.addEventListener('click', function() {
+        const newForm = document.getElementById('newPartnerForm');
+        if (newForm) newForm.style.display = 'block';
         this.style.display = 'none';
       });
       
-      document.getElementById('cancelPartnerBtn').addEventListener('click', function() {
-        document.getElementById('newPartnerForm').style.display = 'none';
-        document.getElementById('addPartnerBtn').style.display = 'block';
-        document.getElementById('partner_name').value = '';
-        document.getElementById('partner_type').value = '';
-        document.getElementById('partner_code').value = '';
-        document.getElementById('partner_phone').value = '';
-        document.getElementById('partner_address').value = '';
+      const _cancelPartnerBtn = document.getElementById('cancelPartnerBtn');
+      if (_cancelPartnerBtn) _cancelPartnerBtn.addEventListener('click', function() {
+        const newForm = document.getElementById('newPartnerForm');
+        if (newForm) newForm.style.display = 'none';
+        const addBtn = document.getElementById('addPartnerBtn');
+        if (addBtn) addBtn.style.display = 'block';
+        const fields = ['partner_name','partner_type','partner_code','partner_phone','partner_address'];
+        fields.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
       });
       
-      document.getElementById('savePartnerBtn').addEventListener('click', function() {
+      const _savePartnerBtn = document.getElementById('savePartnerBtn');
+      if (_savePartnerBtn) _savePartnerBtn.addEventListener('click', function() {
         const provinceCode = document.getElementById('provinceSelect').value;
         const partnerData = {
           name: document.getElementById('partner_name').value,
@@ -1006,6 +1125,7 @@
 
       document.addEventListener('DOMContentLoaded', function() {
         initializeCharts();
+        setupPartnerDropdown();
       });
 
       function initializeCharts() {
@@ -1019,14 +1139,14 @@
             datasets: [{
               label: 'Dibuat',
               data: dailyTrendsData.map(d => d.created),
-              borderColor: '#106EBE',
-              backgroundColor: 'rgba(16, 110, 190, 0.1)',
+              borderColor: '#E91E63',
+              backgroundColor: 'rgba(233, 30, 99, 0.12)',
               tension: 0.4
             }, {
               label: 'Terkirim',
               data: dailyTrendsData.map(d => d.delivered),
-              borderColor: '#48bb78',
-              backgroundColor: 'rgba(72, 187, 120, 0.1)',
+              borderColor: '#9C27B0',
+              backgroundColor: 'rgba(156, 39, 176, 0.12)',
               tension: 0.4
             }, {
               label: 'Terpakai',
@@ -1056,8 +1176,8 @@
                 const hour = hourlyData.find(h => parseInt(h.hour) === i);
                 return hour ? hour.count : 0;
               }),
-              backgroundColor: 'rgba(102, 126, 234, 0.6)',
-              borderColor: '#106EBE',
+              backgroundColor: 'rgba(156, 39, 176, 0.25)',
+              borderColor: '#9C27B0',
               borderWidth: 1
             }]
           },
@@ -1076,7 +1196,7 @@
             labels: ['Dibuat', 'Terkirim', 'Terpakai'],
             datasets: [{
               data: [<%= stats.created %>, <%= stats.delivered %>, <%= stats.terpakai %>],
-              backgroundColor: ['#106EBE', '#48bb78', '#ed8936'],
+              backgroundColor: ['#E91E63', '#9C27B0', '#ed8936'],
               borderWidth: 2,
               borderColor: '#fff'
             }]
@@ -1097,7 +1217,7 @@
             datasets: [{
               label: 'Jumlah Protokol',
               data: provinceData.map(p => p.count),
-              backgroundColor: ['#106EBE', '#0d4f88', '#0FFCBE', '#48bb78', '#ed8936'],
+              backgroundColor: ['#E91E63', '#9C27B0', '#F06292', '#BA68C8', '#F48FB1'],
               borderWidth: 1
             }]
           },
@@ -1107,6 +1227,80 @@
             plugins: { legend: { display: false } },
             scales: { x: { beginAtZero: true } }
           }
+        });
+      }
+
+      function setupPartnerDropdown(){
+        const toggleBtn = document.getElementById('partnerDropdownToggle');
+        const dropdown = document.getElementById('partnerDropdown');
+        const closeBtn = document.getElementById('closePartnerDropdown');
+        const listContainer = document.getElementById('partnerListContainer');
+        if(!toggleBtn || !dropdown) return;
+
+        let loaded = false;
+
+        function renderPartners(data){
+          if(!data.partners || data.partners.length === 0){
+            listContainer.innerHTML = '<div class="pd-empty">Belum ada mitra ditambahkan.</div>';
+            return;
+          }
+          listContainer.innerHTML = data.partners.map(p => {
+            const canDelete = p.protocol_count === 0; // allow delete only if zero protocols
+            return `<div class="pd-item" data-id="${p.id}">
+              <div>
+                <div class="pd-name">${p.name} <span style='font-weight:400; color:#6b7280;'>(${p.code})</span></div>
+                <div class="pd-meta">${p.type.replace('_',' ').toUpperCase()} • Prov: ${p.province_code || '-'} • Protokol: ${p.protocol_count}</div>
+              </div>
+              ${canDelete ? `<button class='pd-delete' data-id='${p.id}' title='Hapus mitra'>Hapus</button>` : '<span style="margin-left:auto;font-size:10px;color:#9c4a7d;font-weight:600;">Dipakai</span>'}
+            </div>`;
+          }).join('');
+        }
+
+        function loadPartners(){
+          listContainer.innerHTML = '<div class="pd-loading">Memuat mitra...</div>';
+          fetch('/api/partners-all')
+            .then(r => {
+              if(!r.ok){
+                const msg = r.status === 404 ? 'Endpoint tidak ditemukan. Restart server diperlukan.' : 'Gagal memuat ('+r.status+').';
+                throw new Error(msg);
+              }
+              return r.json();
+            })
+            .then(data => { renderPartners(data); attachDeleteHandlers(); loaded = true; })
+            .catch(err => { console.error(err); listContainer.innerHTML = '<div class="pd-empty">'+(err.message||'Gagal memuat mitra.')+'</div>'; });
+        }
+
+        function attachDeleteHandlers(){
+          dropdown.querySelectorAll('.pd-delete').forEach(btn => {
+            btn.addEventListener('click', () => {
+              const id = btn.dataset.id;
+              if(!confirm('Hapus mitra ini?')) return;
+              btn.disabled = true; btn.textContent = '...';
+              fetch('/api/partners/' + id, { method:'DELETE' })
+                .then(r => r.json())
+                .then(resp => {
+                  if(resp.success){
+                    const item = dropdown.querySelector('.pd-item[data-id="' + id + '"]');
+                    if(item) item.remove();
+                    if(!dropdown.querySelector('.pd-item')) listContainer.innerHTML = '<div class="pd-empty">Belum ada mitra ditambahkan.</div>';
+                    showToast('Mitra dihapus.', 'success');
+                  } else {
+                    showToast(resp.error || 'Gagal hapus mitra', 'error');
+                    btn.disabled = false; btn.textContent = 'Hapus';
+                  }
+                })
+                .catch(e => { console.error(e); showToast('Error jaringan', 'error'); btn.disabled = false; btn.textContent='Hapus'; });
+            });
+          });
+        }
+
+        toggleBtn.addEventListener('click', () => {
+          dropdown.classList.toggle('show');
+          if(dropdown.classList.contains('show') && !loaded){ loadPartners(); }
+        });
+        if(closeBtn){ closeBtn.addEventListener('click', () => dropdown.classList.remove('show')); }
+        document.addEventListener('click', (e) => {
+          if(!dropdown.contains(e.target) && e.target !== toggleBtn){ dropdown.classList.remove('show'); }
         });
       }
 

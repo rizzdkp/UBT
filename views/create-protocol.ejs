@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="id">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
+		<title>Produsen - Buat Protokol</title>
+		<link rel="manifest" href="/manifest.json">
+		<meta name="theme-color" content="#E91E63">
+		<link rel="stylesheet" href="/styles.css" />
+		<link rel="stylesheet" href="/mobile-responsive.css" />
+		<link rel="stylesheet" href="/toast.css" />
+	</head>
+	<body>
+		<div class="container">
+			<header>
+				<button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle Menu">
+					<span></span>
+					<span></span>
+					<span></span>
+				</button>
+				<h1>Halaman Produsen</h1>
+				<div class="user">
+					Masuk sebagai <strong><%= user.full_name || user %></strong>
+					<% if (user.role) { %>(<%= user.role %>)<% } %> —
+					<a href="/">Dasbor</a> |
+					<!-- Mitra link removed per request -->
+					<a href="/scanner">Scanner</a> |
+					<% if (user.role === 'admin') { %>
+						<a href="/users">Pengguna</a> |
+					<% } %>
+					<a href="/logout">Keluar</a>
+				</div>
+			</header>
+
+			<section>
+				<h2>Buat Protokol</h2>
+				<form method="post" action="/protocols" id="protocolForm">
+					<div class="form-row">
+						<div class="form-group">
+							<label for="province">Provinsi</label>
+							<select name="province" id="provinceSelect" required>
+								<option value="">Pilih Provinsi</option>
+								<% provinces.forEach(function(p){ %>
+									<option value="<%= p.code %>"><%= p.name %> (<%= p.code %>)</option>
+								<% }) %>
+							</select>
+						</div>
+						<div class="form-group">
+							<label for="partner">Mitra</label>
+							<select name="partner_id" id="partnerSelect" required disabled>
+								<option value="">Pilih Provinsi Terlebih Dahulu</option>
+							</select>
+						</div>
+					</div>
+
+					<div class="form-row">
+						<div class="form-group">
+							<label for="quantity">Jumlah</label>
+							<input type="number" name="quantity" id="quantityInput" min="1" max="100" value="1" required>
+							<small style="color: #666; font-size: 12px;">Jumlah kode QR yang akan dibuat (1-100)</small>
+						</div>
+					</div>
+
+					<div class="form-group" id="addPartnerSection" style="display: none;">
+						<button type="button" id="addPartnerBtn" class="btn-secondary">
+							+ Tambah Mitra Baru untuk Provinsi yang Dipilih
+						</button>
+					</div>
+
+					<div id="newPartnerForm" style="display: none;" class="new-partner-form">
+						<h3>Tambah Mitra Baru</h3>
+						<div class="form-row">
+							<div class="form-group">
+								<label for="partner_name">Nama Mitra</label>
+								<input type="text" id="partner_name" name="partner_name" placeholder="Nama mitra">
+							</div>
+							<div class="form-group">
+								<label for="partner_type">Tipe Mitra</label>
+								<select id="partner_type" name="partner_type">
+									<option value="">Pilih Tipe</option>
+									<option value="klinik">Klinik</option>
+									<option value="puskesmas">Puskesmas</option>
+									<option value="rumah_sakit">Rumah Sakit</option>
+								</select>
+							</div>
+						</div>
+						<div class="form-row">
+							<div class="form-group">
+								<label for="partner_code">Kode Mitra</label>
+								<input type="text" id="partner_code" name="partner_code" placeholder="Contoh: KLN001" maxlength="10">
+							</div>
+							<div class="form-group">
+								<label for="partner_phone">Telepon (Opsional)</label>
+								<input type="tel" id="partner_phone" name="partner_phone" placeholder="Nomor telepon">
+							</div>
+						</div>
+						<div class="form-group">
+							<label for="partner_address">Alamat (Opsional)</label>
+							<textarea id="partner_address" name="partner_address" rows="2" placeholder="Alamat"></textarea>
+						</div>
+						<div class="form-actions">
+							<button type="button" id="cancelPartnerBtn" class="btn-secondary">Batal</button>
+							<button type="button" id="savePartnerBtn" class="btn-primary">Simpan & Gunakan Mitra</button>
+						</div>
+					</div>
+
+					<button type="submit" id="createProtocolBtn" disabled>Buat Protokol & Generate Kode QR</button>
+				</form>
+			</section>
+		</div>
+
+		<script src="/toast.js"></script>
+		<script>
+			document.getElementById('provinceSelect').addEventListener('change', function() {
+				const provinceCode = this.value;
+				const partnerSelect = document.getElementById('partnerSelect');
+				const addPartnerSection = document.getElementById('addPartnerSection');
+				const createBtn = document.getElementById('createProtocolBtn');
+        
+				if (!provinceCode) {
+					partnerSelect.disabled = true;
+					partnerSelect.innerHTML = '<option value="">Pilih Provinsi Terlebih Dahulu</option>';
+					addPartnerSection.style.display = 'none';
+					createBtn.disabled = true;
+					return;
+				}
+        
+				fetch(`/api/partners/${provinceCode}`)
+					.then(response => response.json())
+					.then(partners => {
+						partnerSelect.innerHTML = '<option value="">Pilih Mitra</option>';
+            
+						partners.forEach(partner => {
+							const option = document.createElement('option');
+							option.value = partner.id;
+							option.textContent = `${partner.name} (${partner.code}) - ${partner.type.replace('_', ' ').toUpperCase()}`;
+							partnerSelect.appendChild(option);
+						});
+            
+						partnerSelect.disabled = false;
+						addPartnerSection.style.display = 'block';
+					})
+					.catch(error => {
+						console.error('Error:', error);
+						partnerSelect.innerHTML = '<option value="">Error memuat mitra</option>';
+					});
+			});
+      
+			document.getElementById('partnerSelect').addEventListener('change', function() {
+				const createBtn = document.getElementById('createProtocolBtn');
+				createBtn.disabled = !this.value;
+			});
+      
+			document.getElementById('addPartnerBtn').addEventListener('click', function() {
+				document.getElementById('newPartnerForm').style.display = 'block';
+				this.style.display = 'none';
+			});
+      
+			document.getElementById('cancelPartnerBtn').addEventListener('click', function() {
+				document.getElementById('newPartnerForm').style.display = 'none';
+				document.getElementById('addPartnerBtn').style.display = 'block';
+				document.getElementById('partner_name').value = '';
+				document.getElementById('partner_type').value = '';
+				document.getElementById('partner_code').value = '';
+				document.getElementById('partner_phone').value = '';
+				document.getElementById('partner_address').value = '';
+			});
+      
+			document.getElementById('savePartnerBtn').addEventListener('click', function() {
+				const provinceCode = document.getElementById('provinceSelect').value;
+				const partnerData = {
+					name: document.getElementById('partner_name').value,
+					type: document.getElementById('partner_type').value,
+					code: document.getElementById('partner_code').value,
+					province_code: provinceCode,
+					phone: document.getElementById('partner_phone').value,
+					address: document.getElementById('partner_address').value
+				};
+        
+				if (!partnerData.name || !partnerData.type || !partnerData.code) {
+					alert('Mohon isi semua kolom wajib (Nama, Tipe, Kode)');
+					return;
+				}
+        
+				fetch('/api/partners', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify(partnerData)
+				})
+				.then(response => {
+					if (response.ok) {
+						return response.json();
+					}
+					return response.json().then(err => Promise.reject(err));
+				})
+				.then(data => {
+					const partnerSelect = document.getElementById('partnerSelect');
+					const option = document.createElement('option');
+					option.value = data.partner.id;
+					option.textContent = `${data.partner.name} (${data.partner.code}) - ${data.partner.type.replace('_', ' ').toUpperCase()}`;
+					option.selected = true;
+					partnerSelect.appendChild(option);
+          
+					document.getElementById('createProtocolBtn').disabled = false;
+					document.getElementById('cancelPartnerBtn').click();
+          
+					showToast('Mitra berhasil dibuat!', 'success');
+				})
+				.catch(error => {
+					console.error('Error:', error);
+					showToast(error.error || 'Error membuat mitra. Silakan coba lagi.', 'error');
+				});
+			});
+		</script>
+	</body>
+</html>

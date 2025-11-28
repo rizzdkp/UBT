@@ -804,7 +804,7 @@ a:active {
 
 /* Focus visible for keyboard navigation */
 *:focus-visible {
-  outline: 3px solid #106EBE;
+  outline: 3px solid #E91E63;
   outline-offset: 2px;
 }
 
@@ -813,7 +813,7 @@ a:active {
   position: absolute;
   top: -40px;
   left: 0;
-  background: #106EBE;
+  background: #E91E63;
   color: white;
   padding: 8px;
   z-index: 100;
@@ -863,7 +863,7 @@ a:active {
   .mobile-menu-toggle span {
     width: 100%;
     height: 3px;
-    background: #106EBE;
+    background: #E91E63;
     border-radius: 3px;
     transition: all 0.3s ease;
     transform-origin: center;
@@ -969,8 +969,8 @@ a:active {
 
   .navigation-links a:active,
   .navigation-links a:hover {
-    background: #f0f9ff;
-    border-left-color: #106EBE;
+    background: #FCE4EC;
+    border-left-color: #E91E63;
     transform: translateX(4px);
   }
 
@@ -1036,8 +1036,8 @@ a:active {
 
   .dashboard-nav a:active {
     transform: scale(0.98);
-    border-color: #106EBE;
-    background: #f0f9ff;
+    border-color: #E91E63;
+    background: #FCE4EC;
   }
 
   /* Card grid improvements */
@@ -1072,7 +1072,7 @@ a:active {
   .protocol-code {
     font-size: 16px;
     font-weight: 700;
-    color: #106EBE;
+    color: #E91E63;
     word-break: break-all;
   }
 
@@ -1436,7 +1436,7 @@ img {
   }
   
   .modern-stat-card {
-    -webkit-tap-highlight-color: rgba(16, 110, 190, 0.1);
+    -webkit-tap-highlight-color: rgba(233, 30, 99, 0.1);
   }
 }
 

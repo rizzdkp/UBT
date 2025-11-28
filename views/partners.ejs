@@ -171,6 +171,9 @@
                       <%= partner.is_active ? 'Deactivate' : 'Activate' %>
                     </button>
                   </form>
+                  <form method="post" action="/partners/<%= partner.id %>/delete" style="display: inline;" onsubmit="return confirm('Hapus mitra ini? Tindakan ini tidak dapat dibatalkan.');">
+                    <button type="submit" class="btn-small btn-danger">Delete</button>
+                  </form>
                 <% } %>
               </td>
             </tr>
@@ -372,21 +375,10 @@
         background: #218838;
       }
       
-      .btn-primary {
-        background: #007bff;
-        color: white;
-        padding: 12px 24px;
-        border: none;
-        border-radius: 6px;
-        font-size: 14px;
-        font-weight: bold;
-        cursor: pointer;
-        transition: background-color 0.2s;
-      }
-      
-      .btn-primary:hover {
-        background: #0056b3;
-      }
+      .btn-primary { background: var(--gradient-primary); color:#fff; border:none; border-radius:8px; padding:12px 20px; font-weight:700; }
+      .btn-primary:hover { background: linear-gradient(135deg, var(--color-primary-600) 0%, var(--color-primary-700) 100%); }
+      .btn-danger { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color:#fff; border:none; border-radius:6px; padding:8px 12px; font-weight:700; }
+      .btn-danger:hover { background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); }
       
       .no-data {
         text-align: center;

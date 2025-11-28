@@ -68,19 +68,191 @@
                 <div id="result-content"></div>
                 
                 <!-- Patient Input Section -->
-                <div class="patient-input-section" style="margin: 20px 0; padding: 15px; background: #f9fafb; border-radius: 8px; border: 1px solid #e5e7eb;">
-                    <h4 style="margin: 0 0 10px 0; color: #374151; font-size: 14px;">📋 Data Pasien</h4>
-                    <div class="form-group">
-                        <label for="patient-name" style="display: block; margin-bottom: 5px; font-weight: 500;">
-                            Nama Pasien <span style="color: #ef4444;">*</span>
-                        </label>
-                        <input 
-                            type="text" 
-                            id="patient-name" 
-                            placeholder="Masukkan nama pasien..." 
-                            required 
-                            style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;"
-                        />
+                <div class="patient-input-section" style="margin: 20px 0; padding: 20px; background: linear-gradient(135deg, #FCE4EC 0%, #F8BBD0 100%); border-radius: 12px; border: 2px solid #E91E63;">
+                    <h4 style="margin: 0 0 15px 0; color: #C2185B; font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 20px;">👤</span> Data Pasien OBGYN
+                    </h4>
+                    
+                    <div class="patient-form-grid" style="display: grid; grid-template-columns: 1fr; gap: 12px;">
+                        <!-- Nama Pasien (Required) -->
+                        <div class="form-group">
+                            <label for="patient-name" style="display: block; margin-bottom: 5px; font-weight: 600; color: #4a5568; font-size: 13px;">
+                                Nama Lengkap Pasien <span style="color: #ef4444;">*</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                id="patient-name" 
+                                placeholder="Contoh: Ibu Siti Aminah" 
+                                required 
+                                style="width: 100%; padding: 10px 12px; border: 2px solid #E91E63; border-radius: 8px; font-size: 14px; background: white;"
+                            />
+                        </div>
+                        
+                        <!-- Nama Faskes -->
+                        <div class="form-group">
+                            <label for="faskes-name" style="display: block; margin-bottom: 5px; font-weight: 600; color: #4a5568; font-size: 13px;">
+                                Nama Faskes
+                            </label>
+                            <input 
+                                type="text" 
+                                id="faskes-name" 
+                                placeholder="Contoh: RS Budi Asih" 
+                                style="width: 100%; padding: 10px 12px; border: 2px solid #F8BBD0; border-radius: 8px; font-size: 14px; background: white;"
+                            />
+                        </div>
+                        
+                        <!-- Row: Pekerjaan & Status Pekerjaan -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div class="form-group">
+                                <label for="pekerjaan" style="display: block; margin-bottom: 5px; font-weight: 600; color: #4a5568; font-size: 13px;">
+                                    Pekerjaan
+                                </label>
+                                <input 
+                                    type="text" 
+                                    id="pekerjaan" 
+                                    placeholder="Contoh: IRT" 
+                                    style="width: 100%; padding: 10px 12px; border: 2px solid #F8BBD0; border-radius: 8px; font-size: 14px; background: white;"
+                                />
+                            </div>
+                            <div class="form-group">
+                                <label for="status-pekerjaan" style="display: block; margin-bottom: 5px; font-weight: 600; color: #4a5568; font-size: 13px;">
+                                    Status Pekerjaan
+                                </label>
+                                <input 
+                                    type="text" 
+                                    id="status-pekerjaan" 
+                                    placeholder="Aktif/Tidak" 
+                                    style="width: 100%; padding: 10px 12px; border: 2px solid #F8BBD0; border-radius: 8px; font-size: 14px; background: white;"
+                                />
+                            </div>
+                        </div>
+                        
+                        <!-- Status Pernikahan -->
+                        <div class="form-group">
+                            <label for="status-pernikahan" style="display: block; margin-bottom: 5px; font-weight: 600; color: #4a5568; font-size: 13px;">
+                                Status Pernikahan
+                            </label>
+                            <select 
+                                id="status-pernikahan" 
+                                style="width: 100%; padding: 10px 12px; border: 2px solid #F8BBD0; border-radius: 8px; font-size: 14px; background: white;"
+                            >
+                                <option value="">-- Pilih Status --</option>
+                                <option value="MENIKAH">Menikah</option>
+                                <option value="BELUM MENIKAH">Belum Menikah</option>
+                                <option value="CERAI">Cerai</option>
+                                <option value="DUDA/JANDA">Duda/Janda</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Alamat -->
+                        <div class="form-group">
+                            <label for="alamat" style="display: block; margin-bottom: 5px; font-weight: 600; color: #4a5568; font-size: 13px;">
+                                Alamat Lengkap
+                            </label>
+                            <textarea 
+                                id="alamat" 
+                                rows="2" 
+                                placeholder="Jalan, RT/RW, Kelurahan, Kecamatan" 
+                                style="width: 100%; padding: 10px 12px; border: 2px solid #F8BBD0; border-radius: 8px; font-size: 14px; background: white; resize: vertical;"
+                            ></textarea>
+                        </div>
+                        
+                        <!-- Row: Provinsi & Kabupaten -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div class="form-group">
+                                <label for="provinsi" style="display: block; margin-bottom: 5px; font-weight: 600; color: #4a5568; font-size: 13px;">
+                                    Provinsi
+                                </label>
+                                <select 
+                                    id="provinsi" 
+                                    style="width: 100%; padding: 10px 12px; border: 2px solid #F8BBD0; border-radius: 8px; font-size: 14px; background: white;"
+                                >
+                                    <option value="">-- Pilih Provinsi --</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="kabupaten" style="display: block; margin-bottom: 5px; font-weight: 600; color: #4a5568; font-size: 13px;">
+                                    Kabupaten/Kota
+                                </label>
+                                <select 
+                                    id="kabupaten" 
+                                    style="width: 100%; padding: 10px 12px; border: 2px solid #F8BBD0; border-radius: 8px; font-size: 14px; background: white;"
+                                    disabled
+                                >
+                                    <option value="">-- Pilih Kabupaten --</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Tindakan -->
+                        <div class="form-group">
+                            <label for="tindakan" style="display: block; margin-bottom: 5px; font-weight: 600; color: #4a5568; font-size: 13px;">
+                                Tindakan Medis
+                            </label>
+                            <input 
+                                type="text" 
+                                id="tindakan" 
+                                placeholder="Contoh: Pemeriksaan Kehamilan, USG" 
+                                style="width: 100%; padding: 10px 12px; border: 2px solid #F8BBD0; border-radius: 8px; font-size: 14px; background: white;"
+                            />
+                        </div>
+                        
+                        <!-- GPA (Gravida, Para, Abortus) -->
+                        <div style="background: white; padding: 12px; border-radius: 8px; border: 2px solid #F8BBD0;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 700; color: #C2185B; font-size: 13px;">
+                                GPA (Gravida - Para - Abortus)
+                            </label>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+                                <div>
+                                    <label for="gpa-gravida" style="display: block; margin-bottom: 4px; font-size: 12px; color: #6b7280;">Gravida (G)</label>
+                                    <input 
+                                        type="number" 
+                                        id="gpa-gravida" 
+                                        min="0" 
+                                        placeholder="0" 
+                                        style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;"
+                                    />
+                                </div>
+                                <div>
+                                    <label for="gpa-para" style="display: block; margin-bottom: 4px; font-size: 12px; color: #6b7280;">Para (P)</label>
+                                    <input 
+                                        type="number" 
+                                        id="gpa-para" 
+                                        min="0" 
+                                        placeholder="0" 
+                                        style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;"
+                                    />
+                                </div>
+                                <div>
+                                    <label for="gpa-abortus" style="display: block; margin-bottom: 4px; font-size: 12px; color: #6b7280;">Abortus (A)</label>
+                                    <input 
+                                        type="number" 
+                                        id="gpa-abortus" 
+                                        min="0" 
+                                        placeholder="0" 
+                                        style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Tenaga Kesehatan -->
+                        <div class="form-group">
+                            <label for="tenaga-kesehatan" style="display: block; margin-bottom: 5px; font-weight: 600; color: #4a5568; font-size: 13px;">
+                                Tenaga Kesehatan
+                            </label>
+                            <select 
+                                id="tenaga-kesehatan" 
+                                style="width: 100%; padding: 10px 12px; border: 2px solid #F8BBD0; border-radius: 8px; font-size: 14px; background: white;"
+                            >
+                                <option value="">-- Pilih --</option>
+                                <option value="RS">Rumah Sakit (RS)</option>
+                                <option value="BIDAN">Bidan</option>
+                                <option value="KLINIK">Klinik</option>
+                                <option value="PUSKESMAS">Puskesmas</option>
+                                <option value="LAINNYA">Lainnya</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
                 
@@ -254,23 +426,38 @@
         }
         
         if (confirm(`Apakah Anda yakin ingin menandai protokol ini sebagai ${actionText} untuk pasien ${patientName}?`)) {
-            updateStatus(code, action, patientName);
+            updateStatus(code, action);
         }
     }
 
     // Perbarui status protokol
-    function updateStatus(code, action, patientName) {
+    function updateStatus(code, action) {
         showLoading(true);
+        
+        // Collect all patient data
+        const patientData = {
+            action: action,
+            patient_name: document.getElementById('patient-name')?.value.trim() || '',
+            faskes_name: document.getElementById('faskes-name')?.value.trim() || '',
+            pekerjaan: document.getElementById('pekerjaan')?.value.trim() || '',
+            status_pekerjaan: document.getElementById('status-pekerjaan')?.value.trim() || '',
+            status_pernikahan: document.getElementById('status-pernikahan')?.value || '',
+            alamat: document.getElementById('alamat')?.value.trim() || '',
+            tindakan: document.getElementById('tindakan')?.value.trim() || '',
+            gpa_gravida: document.getElementById('gpa-gravida')?.value || null,
+            gpa_para: document.getElementById('gpa-para')?.value || null,
+            gpa_abortus: document.getElementById('gpa-abortus')?.value || null,
+            tenaga_kesehatan: document.getElementById('tenaga-kesehatan')?.value || '',
+            provinsi: document.getElementById('provinsi')?.selectedOptions[0]?.text || '',
+            kabupaten: document.getElementById('kabupaten')?.value || ''
+        };
         
         fetch(`/api/confirm-usage/${code}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ 
-                action: action,
-                patient_name: patientName 
-            })
+            body: JSON.stringify(patientData)
         })
         .then(response => response.json())
         .then(data => {
@@ -278,8 +465,8 @@
             if (data.success) {
                 showToast(data.message, 'success');
                 displayResult(data.protocol); // Refresh tampilan
-                // Clear input setelah berhasil
-                document.getElementById('patient-name').value = '';
+                // Clear all inputs setelah berhasil
+                clearPatientForm();
             } else {
                 showToast(data.error || 'Gagal memperbarui status', 'error');
             }
@@ -288,6 +475,24 @@
             showLoading(false);
             showToast('Error saat memperbarui status', 'error');
         });
+    }
+    
+    // Clear form setelah submit berhasil
+    function clearPatientForm() {
+        document.getElementById('patient-name').value = '';
+        document.getElementById('faskes-name').value = '';
+        document.getElementById('pekerjaan').value = '';
+        document.getElementById('status-pekerjaan').value = '';
+        document.getElementById('status-pernikahan').value = '';
+        document.getElementById('alamat').value = '';
+        document.getElementById('tindakan').value = '';
+        document.getElementById('gpa-gravida').value = '';
+        document.getElementById('gpa-para').value = '';
+        document.getElementById('gpa-abortus').value = '';
+        document.getElementById('tenaga-kesehatan').value = '';
+        document.getElementById('provinsi').value = '';
+        document.getElementById('kabupaten').value = '';
+        document.getElementById('kabupaten').disabled = true;
     }
 
     // Tampilkan/sembunyikan loading
@@ -381,8 +586,74 @@
         startScanning();
     });
 
+    // Load provinsi dan kabupaten data
+    let regionsData = null;
+    
+    async function loadRegionsData() {
+        try {
+            const response = await fetch('/indonesia-regions.json');
+            regionsData = await response.json();
+            populateProvinsiDropdown();
+        } catch (error) {
+            console.error('Error loading regions data:', error);
+        }
+    }
+    
+    function populateProvinsiDropdown() {
+        const provinsiSelect = document.getElementById('provinsi');
+        if (!provinsiSelect || !regionsData) return;
+        
+        // Clear existing options except the first one
+        provinsiSelect.innerHTML = '<option value="">-- Pilih Provinsi --</option>';
+        
+        // Add provinces
+        regionsData.provinces.forEach(prov => {
+            const option = document.createElement('option');
+            option.value = prov.code;
+            option.textContent = prov.name;
+            option.dataset.kabupatens = JSON.stringify(prov.kabupatens);
+            provinsiSelect.appendChild(option);
+        });
+    }
+    
+    function populateKabupatenDropdown(kabupatens) {
+        const kabupatenSelect = document.getElementById('kabupaten');
+        if (!kabupatenSelect) return;
+        
+        // Clear and enable
+        kabupatenSelect.innerHTML = '<option value="">-- Pilih Kabupaten/Kota --</option>';
+        kabupatenSelect.disabled = false;
+        
+        // Add kabupatens
+        if (kabupatens && Array.isArray(kabupatens)) {
+            kabupatens.forEach(kab => {
+                const option = document.createElement('option');
+                option.value = kab;
+                option.textContent = kab;
+                kabupatenSelect.appendChild(option);
+            });
+        }
+    }
+    
+    // Event listener for provinsi change
+    document.getElementById('provinsi')?.addEventListener('change', function() {
+        const selectedOption = this.selectedOptions[0];
+        if (selectedOption && selectedOption.dataset.kabupatens) {
+            try {
+                const kabupatens = JSON.parse(selectedOption.dataset.kabupatens);
+                populateKabupatenDropdown(kabupatens);
+            } catch (e) {
+                console.error('Error parsing kabupatens:', e);
+            }
+        } else {
+            document.getElementById('kabupaten').innerHTML = '<option value="">-- Pilih Kabupaten --</option>';
+            document.getElementById('kabupaten').disabled = true;
+        }
+    });
+    
     // Inisialisasi saat load
     initScanner();
+    loadRegionsData();
 
     // Unregister Service Worker lama dari Vercel
     if ('serviceWorker' in navigator) {

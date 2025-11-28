@@ -656,6 +656,7 @@ function getAdvancedAnalytics(callback) {
       // Get partner performance
       db.all(`
         SELECT 
+          pt.id as partner_id,
           pt.name as partner_name,
           pt.type as partner_type,
           pt.code as partner_code,
@@ -983,6 +984,20 @@ app.post('/users/:id/reset-password', requireAuth, requireRole('admin'), (req, r
 });
 
 app.get('/logout', (req, res) => {
+  // Produsen page: separated create protocol dashboard
+  app.get('/produsen', requireAuth, requireRole('admin', 'operator'), (req, res) => {
+    try {
+      res.render('create-protocol', {
+        user: req.user || { full_name: req.session.user },
+        provinces,
+        req
+      });
+    } catch (e) {
+      console.error('Error rendering produsen page:', e);
+      res.status(500).send('Internal server error');
+    }
+  });
+
   req.session.destroy(() => res.redirect('/login'));
 });
 
@@ -1076,6 +1091,31 @@ app.post('/partners/:id/toggle-status', requireAuth, requireRole('admin'), (req,
   });
 });
 
+// Hard delete partner (only if no protocols are linked)
+app.post('/partners/:id/delete', requireAuth, requireRole('admin'), (req, res) => {
+  const partnerId = req.params.id;
+  db.get('SELECT COUNT(*) as cnt FROM protocols WHERE partner_id = ?', [partnerId], (err, row) => {
+    if (err) {
+      console.error('Error checking partner protocols:', err);
+      return res.status(500).send('Database error');
+    }
+    if (row && row.cnt > 0) {
+      // Prevent deletion if used by protocols
+      return res.status(400).send('Mitra memiliki protokol terkait dan tidak dapat dihapus');
+    }
+    db.run('DELETE FROM stock_tracking WHERE partner_id = ?', [partnerId], (err1) => {
+      if (err1) console.error('Error deleting stock tracking for partner:', err1);
+      db.run('DELETE FROM partners WHERE id = ?', [partnerId], (err2) => {
+        if (err2) {
+          console.error('Error deleting partner:', err2);
+          return res.status(500).send('Database error');
+        }
+        res.redirect('/partners');
+      });
+    });
+  });
+});
+
 // API endpoint to get partners by province (for AJAX)
 app.get('/api/partners/:provinceCode', requireAuth, (req, res) => {
   const provinceCode = req.params.provinceCode;
@@ -1092,6 +1132,9 @@ app.get('/api/partners/:provinceCode', requireAuth, (req, res) => {
     }
   );
 });
+
+// API endpoint to check partner code availability
+// (removed) API endpoint to check partner code availability
 
 // API endpoint to add partner via AJAX
 app.post('/api/partners', requireAuth, requireRole('admin', 'operator'), (req, res) => {
@@ -1170,6 +1213,27 @@ app.get('/api/stock', requireAuth, (req, res) => {
         return res.status(500).json({ error: 'Database error' });
       }
       res.json(stockData || []);
+    }
+  );
+});
+
+// API: get latest patient data for a partner (based on most recent patient record)
+app.get('/api/patient/partner/:partnerId', requireAuth, (req, res) => {
+  const partnerId = req.params.partnerId;
+  db.get(
+    `SELECT pa.*, pr.code as protocol_code
+     FROM patients pa
+     JOIN protocols pr ON pa.protocol_code = pr.code
+     WHERE pr.partner_id = ?
+     ORDER BY datetime(pa.updated_at) DESC, datetime(pa.created_at) DESC
+     LIMIT 1`,
+    [partnerId],
+    (err, row) => {
+      if (err) {
+        console.error('Error fetching patient by partner:', err);
+        return res.status(500).json({ error: 'Database error' });
+      }
+      res.json(row || null);
     }
   );
 });
@@ -1256,6 +1320,43 @@ app.post('/protocols', requireAuth, requireRole('admin', 'operator'), logActivit
           res.redirect('/?success=' + encodeURIComponent(`${qty} protocol(s) created successfully! Codes: ${protocols.join(', ')}`));
         }
       );
+    });
+  });
+});
+
+// API: list all partners (compact) for header dropdown
+app.get('/api/partners-all', requireAuth, requireRole('admin', 'operator'), (req, res) => {
+  db.all(`SELECT p.id, p.name, p.type, p.code, p.province_code, p.is_active,
+          (SELECT COUNT(*) FROM protocols pr WHERE pr.partner_id = p.id) as protocol_count
+          FROM partners p ORDER BY p.created_at DESC LIMIT 200`, (err, partners) => {
+    if (err) {
+      console.error('Error listing partners:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+    res.json({ partners: partners || [] });
+  });
+});
+
+// API: delete partner (only if no protocols linked)
+app.delete('/api/partners/:id', requireAuth, requireRole('admin'), (req, res) => {
+  const partnerId = req.params.id;
+  db.get('SELECT COUNT(*) as cnt FROM protocols WHERE partner_id = ?', [partnerId], (err, row) => {
+    if (err) {
+      console.error('Error checking partner protocols:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+    if (row && row.cnt > 0) {
+      return res.status(400).json({ error: 'Tidak bisa hapus: mitra memiliki protokol terkait' });
+    }
+    db.run('DELETE FROM stock_tracking WHERE partner_id = ?', [partnerId], (err1) => {
+      if (err1) console.error('Error deleting stock tracking for partner:', err1);
+      db.run('DELETE FROM partners WHERE id = ?', [partnerId], (err2) => {
+        if (err2) {
+          console.error('Error deleting partner:', err2);
+          return res.status(500).json({ error: 'Database error' });
+        }
+        return res.json({ success: true, id: partnerId });
+      });
     });
   });
 });
@@ -1396,7 +1497,22 @@ app.get('/scanner', requireAuth, (req, res) => {
 // API endpoint to confirm status change from scanner (all authenticated users)
 app.post('/api/confirm-usage/:code', requireAuth, (req, res) => {
   const { code } = req.params;
-  const { action, patient_name } = req.body; // 'mark_terpakai' or 'mark_delivered'
+  const { 
+    action, 
+    patient_name,
+    faskes_name,
+    pekerjaan,
+    status_pekerjaan,
+    status_pernikahan,
+    alamat,
+    tindakan,
+    gpa_gravida,
+    gpa_para,
+    gpa_abortus,
+    tenaga_kesehatan,
+    provinsi,
+    kabupaten
+  } = req.body;
   
   // Validasi nama pasien
   if (!patient_name || patient_name.trim() === '') {
@@ -1417,6 +1533,55 @@ app.post('/api/confirm-usage/:code', requireAuth, (req, res) => {
       [newStatus, patient_name.trim(), req.user?.id || req.session.userId, code], 
       function (err) {
         if (err) return res.status(500).json({ error: 'Failed to update status' });
+        
+        // Save detailed patient information to patients table
+        db.run(
+          `INSERT INTO patients (
+            protocol_code, patient_name, faskes_name, pekerjaan, status_pekerjaan,
+            status_pernikahan, alamat, tindakan, gpa_gravida, gpa_para, gpa_abortus,
+            tenaga_kesehatan, provinsi, kabupaten, created_by, created_at, updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          ON CONFLICT(protocol_code) DO UPDATE SET
+            patient_name = excluded.patient_name,
+            faskes_name = excluded.faskes_name,
+            pekerjaan = excluded.pekerjaan,
+            status_pekerjaan = excluded.status_pekerjaan,
+            status_pernikahan = excluded.status_pernikahan,
+            alamat = excluded.alamat,
+            tindakan = excluded.tindakan,
+            gpa_gravida = excluded.gpa_gravida,
+            gpa_para = excluded.gpa_para,
+            gpa_abortus = excluded.gpa_abortus,
+            tenaga_kesehatan = excluded.tenaga_kesehatan,
+            provinsi = excluded.provinsi,
+            kabupaten = excluded.kabupaten,
+            updated_at = excluded.updated_at`,
+          [
+            code,
+            patient_name?.trim() || null,
+            faskes_name?.trim() || null,
+            pekerjaan?.trim() || null,
+            status_pekerjaan?.trim() || null,
+            status_pernikahan || null,
+            alamat?.trim() || null,
+            tindakan?.trim() || null,
+            gpa_gravida ? parseInt(gpa_gravida) : null,
+            gpa_para ? parseInt(gpa_para) : null,
+            gpa_abortus ? parseInt(gpa_abortus) : null,
+            tenaga_kesehatan || null,
+            provinsi?.trim() || null,
+            kabupaten?.trim() || null,
+            req.user?.id || req.session.userId,
+            getWIBTimestamp(),
+            getWIBTimestamp()
+          ],
+          function(patientErr) {
+            if (patientErr) {
+              console.error('Error saving patient data:', patientErr);
+              // Don't fail the whole operation, just log the error
+            }
+          }
+        );
         
         // Log activity with patient name
         if (req.user && req.user.id) {
@@ -1479,3 +1644,14 @@ server.on('error', (err) => {
 
 // Optional: redirect agar tautan /dashboard tidak 404
 app.get('/dashboard', (req, res) => res.redirect('/'));
+
+// Extra diagnostics for mysterious early exits
+process.on('exit', (code) => {
+  console.log(`[${formatWIBTimestamp()}] Process exiting with code`, code);
+});
+process.on('SIGINT', () => {
+  console.log(`[${formatWIBTimestamp()}] Caught SIGINT (Ctrl+C)`);
+});
+process.on('SIGTERM', () => {
+  console.log(`[${formatWIBTimestamp()}] Caught SIGTERM`);
+});

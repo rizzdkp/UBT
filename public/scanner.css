@@ -5,7 +5,7 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     margin: 0;
     padding: 0;
-    background: linear-gradient(135deg, #106EBE 0%, #0d4f88 100%);
+    background: linear-gradient(135deg, #E91E63 0%, #9C27B0 100%);
     min-height: 100vh;
     color: #2d3748;
 }
@@ -137,18 +137,18 @@ body {
 
 .input-group input:focus {
     outline: none;
-    border-color: #106EBE;
-    box-shadow: 0 0 0 3px rgba(16, 110, 190, 0.15);
+    border-color: #E91E63;
+    box-shadow: 0 0 0 3px rgba(233, 30, 99, 0.15);
 }
 
 .btn-submit {
-    background: linear-gradient(135deg, #106EBE 0%, #0f60a6 100%);
+    background: linear-gradient(135deg, #E91E63 0%, #C2185B 100%);
     color: white;
     white-space: nowrap;
 }
 
 .btn-submit:hover {
-    background: linear-gradient(135deg, #0f60a6 0%, #0d4f88 100%);
+    background: linear-gradient(135deg, #C2185B 0%, #9C27B0 100%);
 }
 
 .scan-result {
@@ -305,7 +305,37 @@ body {
 }
 
 .toast-info {
-    background: linear-gradient(135deg, #106EBE 0%, #0f60a6 100%);
+    background: linear-gradient(135deg, #E91E63 0%, #C2185B 100%);
+}
+
+/* Patient Form Styling */
+.patient-form-grid input,
+.patient-form-grid select,
+.patient-form-grid textarea {
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.patient-form-grid input:focus,
+.patient-form-grid select:focus,
+.patient-form-grid textarea:focus {
+    outline: none;
+    border-color: #E91E63 !important;
+    box-shadow: 0 0 0 3px rgba(233, 30, 99, 0.15);
+}
+
+.patient-input-section {
+    animation: slideInUp 0.3s ease-out;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Responsive */
@@ -393,5 +423,30 @@ body {
     .back-link {
         display: inline-block;
         margin: 0 5px;
+    }
+    
+    /* Patient Form Mobile */
+    .patient-input-section {
+        padding: 15px !important;
+        margin: 15px 0 !important;
+    }
+    
+    .patient-input-section h4 {
+        font-size: 14px !important;
+    }
+    
+    .patient-form-grid {
+        gap: 10px !important;
+    }
+    
+    .patient-form-grid input,
+    .patient-form-grid select,
+    .patient-form-grid textarea {
+        padding: 12px !important;
+        font-size: 16px !important; /* Prevent zoom on iOS */
+    }
+    
+    .patient-form-grid label {
+        font-size: 12px !important;
     }
 }

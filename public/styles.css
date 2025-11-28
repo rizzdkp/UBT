@@ -1,16 +1,18 @@
 /* Enhanced Login Page Styling */
 :root {
-  --color-primary: #106EBE;
-  --color-primary-600: #0f60a6;
-  --color-primary-700: #0d4f88;
-  --color-mint: #0FFCBE;
+  --color-primary: #E91E63;
+  --color-primary-600: #C2185B;
+  --color-primary-700: #9C27B0;
+  --color-accent-light: #F8BBD0;
+  --color-background-soft: #FCE4EC;
+  --gradient-primary: linear-gradient(135deg, #E91E63 0%, #9C27B0 100%);
 }
 
 .login-body {
   margin: 0;
   padding: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-700) 100%);
+  background: var(--gradient-primary);
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -157,7 +159,7 @@
 
 .input-wrapper input:focus {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(16, 110, 190, 0.15);
+  box-shadow: 0 0 0 3px rgba(233, 30, 99, 0.15);
 }
 
 .input-wrapper input:focus + .input-icon,
@@ -167,7 +169,7 @@
 
 .login-button {
   width: 100%;
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-600) 100%);
+  background: var(--gradient-primary);
   color: white;
   border: none;
   border-radius: 12px;
@@ -202,7 +204,7 @@
 
 .login-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 24px rgba(16, 110, 190, 0.3);
+  box-shadow: 0 12px 24px rgba(233, 30, 99, 0.35);
 }
 
 .login-button:active {
@@ -295,7 +297,7 @@
 * { box-sizing: border-box; }
 body { 
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-700) 100%);
+  background: var(--gradient-primary);
   color: #2d3748;
   margin: 0;
   padding: 20px;
@@ -392,13 +394,13 @@ input, select {
 input:focus, select:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(16, 110, 190, 0.15);
+  box-shadow: 0 0 0 3px rgba(233, 30, 99, 0.15);
 }
 
 button { 
   padding: 12px 24px; 
   margin-top: 15px;
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-600) 100%);
+  background: var(--gradient-primary);
   color: white;
   border: none;
   border-radius: 8px;
@@ -413,7 +415,7 @@ button {
 button:hover {
   background: linear-gradient(135deg, var(--color-primary-600) 0%, var(--color-primary-700) 100%);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(16, 110, 190, 0.35);
+  box-shadow: 0 4px 12px rgba(233, 30, 99, 0.35);
 }
 
 button:active {
@@ -424,15 +426,15 @@ button:active {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-600) 100%);
+  background: var(--gradient-primary);
   color: #fff;
-  border: 1px solid rgba(15, 96, 166, 0.2);
+  border: 1px solid rgba(233, 30, 99, 0.2);
   padding: 8px 14px;
   font-size: 12px;
   margin: 4px 2px 0;
   border-radius: 9999px;
   text-decoration: none;
-  box-shadow: 0 4px 10px rgba(16,110,190,0.15);
+  box-shadow: 0 4px 10px rgba(233, 30, 99, 0.15);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -444,7 +446,7 @@ button:active {
 
 .btn-download:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 16px rgba(16,110,190,0.25), 0 0 0 3px rgba(15,252,190,0.2);
+  box-shadow: 0 8px 16px rgba(233, 30, 99, 0.35), 0 0 0 3px rgba(248, 187, 208, 0.3);
 }
 
 .btn-download:focus-visible {
@@ -464,7 +466,7 @@ table {
 }
 
 thead {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-700) 100%);
+  background: var(--gradient-primary);
 }
 
 th { 
@@ -598,7 +600,7 @@ tr:hover {
 }
 
 .dashboard-toast-info {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-600) 100%);
+  background: var(--gradient-primary);
 }
 
 /* User Management Styles */
@@ -635,13 +637,27 @@ tr:hover {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-700) 100%);
+  background: var(--gradient-primary) !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-weight: 700;
   margin-top: 10px;
+  box-shadow: 0 6px 14px rgba(233, 30, 99, 0.2);
 }
 
 .btn-primary:hover {
-  background: linear-gradient(135deg, var(--color-primary-600) 0%, var(--color-primary-700) 100%);
+  background: linear-gradient(135deg, var(--color-primary-600) 0%, var(--color-primary-700) 100%) !important;
+  transform: translateY(-1px);
 }
+
+.btn-danger { 
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); 
+  color:#fff; border:none; border-radius:6px; padding:8px 12px; font-weight:700; 
+}
+
+.btn-danger:hover { background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); }
 
 .users-table {
   font-size: 14px;
@@ -862,6 +878,7 @@ tr:hover {
 .metric-icon {
   font-size: 2rem;
   opacity: 0.8;
+  color: var(--color-primary);
 }
 
 .metric-content {
@@ -982,7 +999,7 @@ tr:hover {
 }
 
 .btn-filter {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-700) 100%);
+  background: var(--gradient-primary);
   margin: 0;
 }
 
@@ -1132,7 +1149,7 @@ tr:hover {
 
 .bar-fill {
   height: 100%;
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-600) 100%);
+  background: var(--gradient-primary);
   transition: width 0.3s ease;
   min-width: 2px;
 }

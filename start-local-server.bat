@@ -5,7 +5,8 @@ echo   BARCODE PROTOCOL - LOCAL DEPLOYMENT
 echo ============================================
 echo.
 
-cd /d "D:\PROJECT\UBT\New folder"
+REM Use script directory as working directory
+cd /d "%~dp0"
 
 REM Check if port 8080 is in use
 echo [1/4] Checking port 8080...
@@ -58,6 +59,10 @@ echo Press Ctrl+C to stop the server
 echo ============================================
 echo.
 
+echo Node version:
+node -v
+echo.
+echo Starting Node server...
 node server.js
 
 echo.
@@ -65,5 +70,7 @@ echo ============================================
 echo Server stopped!
 echo Press any key to restart or close to exit
 echo ============================================
+echo Exit code: %errorlevel%
+echo Check error.log if unexpected exit occurred.
 pause >nul
 goto :eof
