@@ -804,7 +804,7 @@ a:active {
 
 /* Focus visible for keyboard navigation */
 *:focus-visible {
-  outline: 3px solid #E91E63;
+  outline: 3px solid #106EBE;
   outline-offset: 2px;
 }
 
@@ -813,7 +813,7 @@ a:active {
   position: absolute;
   top: -40px;
   left: 0;
-  background: #E91E63;
+  background: #106EBE;
   color: white;
   padding: 8px;
   z-index: 100;
@@ -863,7 +863,7 @@ a:active {
   .mobile-menu-toggle span {
     width: 100%;
     height: 3px;
-    background: #E91E63;
+    background: #106EBE;
     border-radius: 3px;
     transition: all 0.3s ease;
     transform-origin: center;
@@ -969,8 +969,8 @@ a:active {
 
   .navigation-links a:active,
   .navigation-links a:hover {
-    background: #FCE4EC;
-    border-left-color: #E91E63;
+    background: #f0f9ff;
+    border-left-color: #106EBE;
     transform: translateX(4px);
   }
 
@@ -1036,8 +1036,8 @@ a:active {
 
   .dashboard-nav a:active {
     transform: scale(0.98);
-    border-color: #E91E63;
-    background: #FCE4EC;
+    border-color: #106EBE;
+    background: #f0f9ff;
   }
 
   /* Card grid improvements */
@@ -1072,7 +1072,7 @@ a:active {
   .protocol-code {
     font-size: 16px;
     font-weight: 700;
-    color: #E91E63;
+    color: #106EBE;
     word-break: break-all;
   }
 
@@ -1181,291 +1181,4 @@ img {
   max-width: 100%;
   height: auto;
   image-rendering: -webkit-optimize-contrast;
-}
-
-/* ============================================
-   MOBILE ENHANCEMENTS FOR MODERN DASHBOARD
-   ============================================ */
-
-@media (max-width: 768px) {
-  /* Stats Cards - Full width on mobile */
-  .modern-stats-grid {
-    grid-template-columns: 1fr !important;
-  }
-  
-  /* Partner Performance Table - Horizontal Scroll */
-  .modern-table-wrapper {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-  
-  .modern-performance-table {
-    min-width: 700px;
-  }
-  
-  /* Protocol QR - Smaller on mobile */
-  .protocol-qr-image {
-    width: 70px !important;
-    height: 70px !important;
-  }
-  
-  .protocol-qr-image:hover {
-    transform: scale(2);
-  }
-  
-  /* Actions - Stack vertically */
-  .protocol-actions-cell {
-    flex-direction: column !important;
-    gap: 8px !important;
-  }
-  
-  .protocol-status-select,
-  .protocol-update-btn {
-    width: 100%;
-  }
-}
-
-@media (max-width: 480px) {
-  /* Extra small screens */
-  .modern-stat-icon {
-    font-size: 32px !important;
-  }
-  
-  .modern-stat-number {
-    font-size: 24px !important;
-  }
-  
-  .modern-stat-label {
-    font-size: 10px !important;
-  }
-  
-  .modern-table-section,
-  .modern-protocols-section {
-    padding: 16px !important;
-    margin: 0 -10px;
-    border-radius: 12px !important;
-  }
-  
-  .protocol-download-btn {
-    font-size: 10px !important;
-    padding: 4px 8px !important;
-  }
-}
-
-/* Touch-friendly buttons */
-@media (hover: none) and (pointer: coarse) {
-  .protocol-update-btn,
-  .protocol-download-btn {
-    min-height: 44px;
-    min-width: 44px;
-  }
-  
-  .protocol-status-select {
-    min-height: 44px;
-  }
-}
-
-/* ============================================
-   MOBILE ENHANCEMENTS FOR MODERN DASHBOARD
-   ============================================ */
-
-@media (max-width: 768px) {
-  /* Stats Cards - Full width on mobile */
-  .modern-stats-grid {
-    grid-template-columns: 1fr !important;
-  }
-  
-  .modern-stat-card {
-    padding: 20px !important;
-  }
-  
-  .modern-stat-icon {
-    font-size: 36px !important;
-  }
-  
-  .modern-stat-number {
-    font-size: 28px !important;
-  }
-  
-  /* Partner Performance Table - Horizontal Scroll */
-  .modern-table-wrapper {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    margin: 0 -20px;
-    border-radius: 0;
-    border-left: none;
-    border-right: none;
-  }
-  
-  .modern-performance-table {
-    min-width: 900px; /* Karena ada kolom Nama Pasien */
-  }
-  
-  .modern-performance-table th,
-  .modern-performance-table td {
-    padding: 12px 8px;
-    font-size: 12px;
-  }
-  
-  /* Patient Name Column - Mobile */
-  .patient-info-badge {
-    font-size: 10px;
-    padding: 4px 8px;
-  }
-  
-  .patient-name-cell .patient-icon {
-    font-size: 14px;
-  }
-  
-  .no-patient-yet {
-    font-size: 11px;
-  }
-  
-  /* Protocol QR - Smaller on mobile */
-  .protocol-qr-image {
-    width: 70px !important;
-    height: 70px !important;
-  }
-  
-  .protocol-qr-image:hover {
-    transform: scale(2);
-  }
-  
-  /* Actions - Stack vertically */
-  .protocol-actions-cell {
-    flex-direction: column !important;
-    gap: 8px !important;
-  }
-  
-  .protocol-status-select,
-  .protocol-update-btn {
-    width: 100%;
-  }
-  
-  /* Table Sections */
-  .modern-table-section,
-  .modern-protocols-section {
-    padding: 20px;
-    border-radius: 12px;
-  }
-  
-  .modern-table-header h3 {
-    font-size: 16px;
-  }
-  
-  /* Usage Rate Cell */
-  .usage-rate-cell {
-    min-width: 120px;
-  }
-  
-  .usage-percentage {
-    font-size: 11px;
-  }
-}
-
-@media (max-width: 480px) {
-  /* Extra small screens (phones) */
-  
-  /* Stats Cards */
-  .modern-stat-icon {
-    font-size: 32px !important;
-  }
-  
-  .modern-stat-number {
-    font-size: 24px !important;
-  }
-  
-  .modern-stat-label {
-    font-size: 11px !important;
-  }
-  
-  /* Table Sections */
-  .modern-table-section,
-  .modern-protocols-section {
-    padding: 16px !important;
-    margin: 0 -10px;
-    border-radius: 12px !important;
-  }
-  
-  /* Performance Table */
-  .modern-performance-table {
-    min-width: 800px;
-  }
-  
-  /* Patient Badge */
-  .patient-info-badge {
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-    padding: 6px;
-  }
-  
-  /* Protocol Table */
-  .modern-protocols-table {
-    min-width: 800px;
-  }
-  
-  /* QR Code */
-  .protocol-qr-image {
-    width: 60px !important;
-    height: 60px !important;
-  }
-  
-  /* Download Button */
-  .protocol-download-btn {
-    font-size: 10px !important;
-    padding: 4px 8px !important;
-  }
-  
-  /* Table Header */
-  .modern-table-header h3 {
-    font-size: 14px;
-  }
-}
-
-/* Touch-friendly buttons for touchscreen devices */
-@media (hover: none) and (pointer: coarse) {
-  .protocol-update-btn,
-  .protocol-download-btn {
-    min-height: 44px;
-    min-width: 44px;
-  }
-  
-  .protocol-status-select {
-    min-height: 44px;
-  }
-  
-  .modern-stat-card {
-    -webkit-tap-highlight-color: rgba(233, 30, 99, 0.1);
-  }
-}
-
-/* Landscape orientation on mobile */
-@media (max-width: 768px) and (orientation: landscape) {
-  .modern-stats-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
-  
-  .modern-stat-card {
-    padding: 16px !important;
-  }
-  
-  .modern-stat-number {
-    font-size: 24px !important;
-  }
-}
-
-/* Tablet responsive (iPad, etc) */
-@media (min-width: 769px) and (max-width: 1024px) {
-  .modern-stats-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-  
-  .modern-performance-table {
-    font-size: 13px;
-  }
-  
-  .modern-protocols-table {
-    font-size: 13px;
-  }
 }

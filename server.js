@@ -19,10 +19,6 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-// Instance identity for diagnostics
-const STARTED_AT = new Date().toISOString();
-const INSTANCE_TAG = `${process.pid}-${Math.random().toString(36).slice(2, 8)}`;
-
 // Trust proxy for Nginx reverse proxy
 app.set('trust proxy', 1);
 
@@ -57,7 +53,14 @@ function getWIBTimestamp() {
   return formatWIBTimestamp();
 }
 
-// (removed) duplicate early error handlers; consolidated below with logFatal
+// Global error logging to diagnose crashes
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err && err.stack ? err.stack : err);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
 
 // Rate limiting
 const authLimiter = rateLimit({
@@ -82,13 +85,6 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 // Static files
 app.use(express.static(path.join(__dirname, 'public')));
-
-// Tag responses to identify instance in the browser devtools
-app.use((req, res, next) => {
-  res.setHeader('X-App-Instance', INSTANCE_TAG);
-  res.setHeader('X-App-Started-At', STARTED_AT);
-  next();
-});
 
 // Manifest route
 app.get('/manifest.json', (req, res) => {
@@ -289,25 +285,6 @@ db.serialize(() => {
         });
       } else {
         console.log('partner_id column already exists in protocols table');
-      }
-    }
-  });
-  
-  // Check if patient_name column exists in protocols table, if not add it
-  db.all("PRAGMA table_info(protocols)", (err, columns) => {
-    if (!err && columns) {
-      const hasPatientName = columns.some(col => col.name === 'patient_name');
-      if (!hasPatientName) {
-        console.log('Adding patient_name column to protocols table...');
-        db.run('ALTER TABLE protocols ADD COLUMN patient_name TEXT', (alterErr) => {
-          if (alterErr) {
-            console.log('Note: Could not add patient_name column:', alterErr.message);
-          } else {
-            console.log('Successfully added patient_name column');
-          }
-        });
-      } else {
-        console.log('patient_name column already exists in protocols table');
       }
     }
   });
@@ -660,16 +637,11 @@ function getAdvancedAnalytics(callback) {
       // Get partner performance
       db.all(`
         SELECT 
-          pt.id as partner_id,
           pt.name as partner_name,
           pt.type as partner_type,
           pt.code as partner_code,
           pt.province_code,
-          (SELECT patient_name FROM protocols WHERE partner_id = pt.id AND patient_name IS NOT NULL ORDER BY created_at DESC LIMIT 1) as patient_name,
           COUNT(p.id) as total_protocols,
-          SUM(CASE WHEN p.status = 'created' THEN 1 ELSE 0 END) as created_count,
-          SUM(CASE WHEN p.status = 'delivered' THEN 1 ELSE 0 END) as delivered_count,
-          SUM(CASE WHEN p.status = 'terpakai' THEN 1 ELSE 0 END) as terpakai_count,
           SUM(CASE WHEN p.status = 'terpakai' THEN 1 ELSE 0 END) as used_protocols,
           ROUND(
             (SUM(CASE WHEN p.status = 'terpakai' THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(p.id), 0)), 2
@@ -987,53 +959,6 @@ app.post('/users/:id/reset-password', requireAuth, requireRole('admin'), (req, r
   });
 });
 
-// Produsen page: create protocol page (must be top-level route)
-app.get('/produsen', requireAuth, requireRole('admin', 'operator'), (req, res) => {
-  try {
-    console.log('[Route] /produsen requested:', {
-      userId: req.user?.id || req.session?.userId || null,
-      ip: req.ip,
-      sessionUser: req.session?.user || null
-    });
-    res.render('create-protocol', {
-      user: req.user || { full_name: req.session.user },
-      provinces,
-      req
-    });
-  } catch (e) {
-    console.error('Error rendering produsen page:', e);
-    res.status(500).send('Internal server error');
-  }
-});
-
-// Helpful aliases & fallback redirects
-app.get(['/produsen/', '/buat-protokol', '/buat-protokol-baru'], (req, res) => {
-  console.log('[Alias Redirect] Redirecting to /produsen from', req.path);
-  res.redirect('/produsen');
-});
-
-console.log('[Init] /produsen route registered');
-
-// Debug route list endpoint (no auth to verify deployment really updated)
-app.get('/__debug/routes', (req, res) => {
-  try {
-    const getRoutes = [];
-    app._router.stack.forEach(layer => {
-      if (layer.route && layer.route.methods.get) {
-        getRoutes.push(layer.route.path);
-      }
-    });
-    res.json({ get: getRoutes });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
-});
-
-// Instance info endpoint
-app.get('/__whoami', (req, res) => {
-  res.json({ pid: process.pid, tag: INSTANCE_TAG, startedAt: STARTED_AT, port: PORT });
-});
-
 app.get('/logout', (req, res) => {
   req.session.destroy(() => res.redirect('/login'));
 });
@@ -1059,50 +984,6 @@ app.get('/partners', requireAuth, requireRole('admin', 'operator'), (req, res) =
       });
     }
   );
-});
-
-// Mitra dashboard (separate from dropdown)
-app.get('/mitra', requireAuth, requireRole('admin', 'operator'), (req, res) => {
-  db.all(
-    `SELECT p.*, u.username as created_by_username,
-      (SELECT COUNT(*) FROM protocols WHERE partner_id = p.id) as protocol_count
-     FROM partners p
-     LEFT JOIN users u ON p.created_by = u.id
-     ORDER BY p.created_at DESC`,
-    (err, partners) => {
-      if (err) {
-        console.error('Error fetching mitra dashboard data:', err);
-        return res.status(500).send('Database error');
-      }
-      res.render('mitra-dashboard', {
-        user: req.session.user || req.user,
-        partners: partners || [],
-        provinces
-      });
-    }
-  );
-});
-
-// Aliases for mitra dashboard (avoid 404 due to trailing slash or alternate naming)
-app.get(['/mitra/', '/mitra-dashboard', '/dashboard-mitra'], (req, res) => {
-  console.log('[Alias Redirect] Redirecting to /mitra from', req.path);
-  res.redirect('/mitra');
-});
-
-// Session dump & request echo for diagnostics
-app.get('/__dump/session', (req, res) => {
-  res.json({
-    pid: process.pid,
-    tag: INSTANCE_TAG,
-    hasUser: !!req.user,
-    session: {
-      id: req.sessionID,
-      user: req.session?.user || null,
-      userId: req.session?.userId || null
-    },
-    headers: req.headers,
-    time: new Date().toISOString()
-  });
 });
 
 app.post('/partners', requireAuth, requireRole('admin', 'operator'), logActivity('create_partner', 'partner'), (req, res) => {
@@ -1148,71 +1029,10 @@ app.post('/partners', requireAuth, requireRole('admin', 'operator'), logActivity
   );
 });
 
-app.post('/partners/:id/edit', requireAuth, requireRole('admin', 'operator'), (req, res) => {
-  const partnerId = req.params.id;
-  const { name, type, code, province_code, phone, email, address } = req.body;
-  
-  // Validate input
-  if (!name || !type || !code || !province_code) {
-    return res.status(400).json({ success: false, error: 'Nama, jenis, kode, dan provinsi harus diisi' });
-  }
-  
-  if (!['klinik', 'puskesmas', 'rumah_sakit'].includes(type)) {
-    return res.status(400).json({ success: false, error: 'Jenis mitra tidak valid' });
-  }
-  
-  if (!validator.isAlphanumeric(code.replace(/[-_]/g, ''))) {
-    return res.status(400).json({ success: false, error: 'Kode harus berupa alfanumerik' });
-  }
-  
-  // Check if code is already used by another partner
-  db.get('SELECT id FROM partners WHERE code = ? AND id != ?', [code.toUpperCase(), partnerId], (err, existing) => {
-    if (err) {
-      console.error('Error checking code uniqueness:', err);
-      return res.status(500).json({ success: false, error: 'Database error' });
-    }
-    
-    if (existing) {
-      return res.status(400).json({ success: false, error: 'Kode mitra sudah digunakan oleh mitra lain' });
-    }
-    
-    db.run(
-      'UPDATE partners SET name = ?, type = ?, code = ?, province_code = ?, phone = ?, email = ?, address = ?, updated_at = ? WHERE id = ?',
-      [name, type, code.toUpperCase(), province_code, phone, email, address, getWIBTimestamp(), partnerId],
-      function(err) {
-        if (err) {
-          console.error('Error updating partner:', err);
-          return res.status(500).json({ success: false, error: 'Database error' });
-        }
-        
-        if (this.changes === 0) {
-          return res.status(404).json({ success: false, error: 'Mitra tidak ditemukan' });
-        }
-        
-        // Log activity
-        const ip = req.ip || req.connection.remoteAddress;
-        const userAgent = req.get('User-Agent');
-        const userId = req.session.userId !== undefined ? req.session.userId : (req.user ? req.user.id : 0);
-        
-        db.run(
-          `INSERT INTO activity_logs (user_id, action, target_type, target_id, details, ip_address, user_agent, created_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-          [userId, 'update_partner', 'partner', partnerId, JSON.stringify({ name, type, code, province_code }), ip, userAgent, getWIBTimestamp()],
-          (logErr) => {
-            if (logErr) console.error('Activity log error:', logErr);
-          }
-        );
-        
-        res.json({ success: true, message: 'Mitra berhasil diperbarui' });
-      }
-    );
-  });
-});
-
 app.post('/partners/:id/toggle-status', requireAuth, requireRole('admin'), (req, res) => {
   const partnerId = req.params.id;
   
-  db.get('SELECT * FROM partners WHERE id = ?', [partnerId], (err, partner) => {
+  db.get('SELECT is_active FROM partners WHERE id = ?', [partnerId], (err, partner) => {
     if (err || !partner) {
       return res.status(404).send('Mitra tidak ditemukan');
     }
@@ -1227,79 +1047,9 @@ app.post('/partners/:id/toggle-status', requireAuth, requireRole('admin'), (req,
           console.error('Error updating partner status:', err);
           return res.status(500).send('Database error');
         }
-        
-        // Log activity
-        const ip = req.ip || req.connection.remoteAddress;
-        const userAgent = req.get('User-Agent');
-        const userId = req.session.userId !== undefined ? req.session.userId : (req.user ? req.user.id : 0);
-        const action = newStatus ? 'activate_partner' : 'deactivate_partner';
-        
-        db.run(
-          `INSERT INTO activity_logs (user_id, action, target_type, target_id, details, ip_address, user_agent, created_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-          [userId, action, 'partner', partnerId, JSON.stringify({ name: partner.name, code: partner.code, new_status: newStatus ? 'active' : 'inactive' }), ip, userAgent, getWIBTimestamp()],
-          (logErr) => {
-            if (logErr) console.error('Activity log error:', logErr);
-          }
-        );
-        
         res.redirect('/partners');
       }
     );
-  });
-});
-
-// Hard delete partner (only if no protocols are linked)
-app.post('/partners/:id/delete', requireAuth, requireRole('admin'), (req, res) => {
-  const partnerId = req.params.id;
-  
-  // First, get partner info for logging
-  db.get('SELECT * FROM partners WHERE id = ?', [partnerId], (err, partner) => {
-    if (err || !partner) {
-      console.error('Error fetching partner:', err);
-      return res.status(404).send('Mitra tidak ditemukan');
-    }
-    
-    // Check if partner has protocols
-    db.get('SELECT COUNT(*) as cnt FROM protocols WHERE partner_id = ?', [partnerId], (err, row) => {
-      if (err) {
-        console.error('Error checking partner protocols:', err);
-        return res.status(500).send('Database error');
-      }
-      if (row && row.cnt > 0) {
-        // Prevent deletion if used by protocols
-        return res.status(400).send('Mitra memiliki protokol terkait dan tidak dapat dihapus');
-      }
-      
-      // Delete stock tracking first
-      db.run('DELETE FROM stock_tracking WHERE partner_id = ?', [partnerId], (err1) => {
-        if (err1) console.error('Error deleting stock tracking for partner:', err1);
-        
-        // Delete the partner
-        db.run('DELETE FROM partners WHERE id = ?', [partnerId], (err2) => {
-          if (err2) {
-            console.error('Error deleting partner:', err2);
-            return res.status(500).send('Database error');
-          }
-          
-          // Log activity
-          const ip = req.ip || req.connection.remoteAddress;
-          const userAgent = req.get('User-Agent');
-          const userId = req.session.userId !== undefined ? req.session.userId : (req.user ? req.user.id : 0);
-          
-          db.run(
-            `INSERT INTO activity_logs (user_id, action, target_type, target_id, details, ip_address, user_agent, created_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-            [userId, 'delete_partner', 'partner', partnerId, JSON.stringify({ name: partner.name, code: partner.code, type: partner.type }), ip, userAgent, getWIBTimestamp()],
-            (logErr) => {
-              if (logErr) console.error('Activity log error:', logErr);
-            }
-          );
-          
-          res.redirect('/partners');
-        });
-      });
-    });
   });
 });
 
@@ -1319,9 +1069,6 @@ app.get('/api/partners/:provinceCode', requireAuth, (req, res) => {
     }
   );
 });
-
-// API endpoint to check partner code availability
-// (removed) API endpoint to check partner code availability
 
 // API endpoint to add partner via AJAX
 app.post('/api/partners', requireAuth, requireRole('admin', 'operator'), (req, res) => {
@@ -1400,27 +1147,6 @@ app.get('/api/stock', requireAuth, (req, res) => {
         return res.status(500).json({ error: 'Database error' });
       }
       res.json(stockData || []);
-    }
-  );
-});
-
-// API: get latest patient data for a partner (based on most recent patient record)
-app.get('/api/patient/partner/:partnerId', requireAuth, (req, res) => {
-  const partnerId = req.params.partnerId;
-  db.get(
-    `SELECT pa.*, pr.code as protocol_code
-     FROM patients pa
-     JOIN protocols pr ON pa.protocol_code = pr.code
-     WHERE pr.partner_id = ?
-     ORDER BY datetime(pa.updated_at) DESC, datetime(pa.created_at) DESC
-     LIMIT 1`,
-    [partnerId],
-    (err, row) => {
-      if (err) {
-        console.error('Error fetching patient by partner:', err);
-        return res.status(500).json({ error: 'Database error' });
-      }
-      res.json(row || null);
     }
   );
 });
@@ -1507,43 +1233,6 @@ app.post('/protocols', requireAuth, requireRole('admin', 'operator'), logActivit
           res.redirect('/?success=' + encodeURIComponent(`${qty} protocol(s) created successfully! Codes: ${protocols.join(', ')}`));
         }
       );
-    });
-  });
-});
-
-// API: list all partners (compact) for header dropdown
-app.get('/api/partners-all', requireAuth, requireRole('admin', 'operator'), (req, res) => {
-  db.all(`SELECT p.id, p.name, p.type, p.code, p.province_code, p.is_active,
-          (SELECT COUNT(*) FROM protocols pr WHERE pr.partner_id = p.id) as protocol_count
-          FROM partners p ORDER BY p.created_at DESC LIMIT 200`, (err, partners) => {
-    if (err) {
-      console.error('Error listing partners:', err);
-      return res.status(500).json({ error: 'Database error' });
-    }
-    res.json({ partners: partners || [] });
-  });
-});
-
-// API: delete partner (only if no protocols linked)
-app.delete('/api/partners/:id', requireAuth, requireRole('admin'), (req, res) => {
-  const partnerId = req.params.id;
-  db.get('SELECT COUNT(*) as cnt FROM protocols WHERE partner_id = ?', [partnerId], (err, row) => {
-    if (err) {
-      console.error('Error checking partner protocols:', err);
-      return res.status(500).json({ error: 'Database error' });
-    }
-    if (row && row.cnt > 0) {
-      return res.status(400).json({ error: 'Tidak bisa hapus: mitra memiliki protokol terkait' });
-    }
-    db.run('DELETE FROM stock_tracking WHERE partner_id = ?', [partnerId], (err1) => {
-      if (err1) console.error('Error deleting stock tracking for partner:', err1);
-      db.run('DELETE FROM partners WHERE id = ?', [partnerId], (err2) => {
-        if (err2) {
-          console.error('Error deleting partner:', err2);
-          return res.status(500).json({ error: 'Database error' });
-        }
-        return res.json({ success: true, id: partnerId });
-      });
     });
   });
 });
@@ -1684,27 +1373,7 @@ app.get('/scanner', requireAuth, (req, res) => {
 // API endpoint to confirm status change from scanner (all authenticated users)
 app.post('/api/confirm-usage/:code', requireAuth, (req, res) => {
   const { code } = req.params;
-  const { 
-    action, 
-    patient_name,
-    faskes_name,
-    pekerjaan,
-    status_pekerjaan,
-    status_pernikahan,
-    alamat,
-    tindakan,
-    gpa_gravida,
-    gpa_para,
-    gpa_abortus,
-    tenaga_kesehatan,
-    provinsi,
-    kabupaten
-  } = req.body;
-  
-  // Validasi nama pasien
-  if (!patient_name || patient_name.trim() === '') {
-    return res.status(400).json({ error: 'Nama pasien harus diisi' });
-  }
+  const { action } = req.body; // 'mark_terpakai' or 'mark_delivered'
   
   // First check if code exists
   db.get('SELECT * FROM protocols WHERE code = ?', [code], (err, row) => {
@@ -1714,89 +1383,34 @@ app.post('/api/confirm-usage/:code', requireAuth, (req, res) => {
     let newStatus = 'terpakai';
     if (action === 'mark_delivered') newStatus = 'delivered';
     
-    // Update status with patient_name
-    db.run(
-      'UPDATE protocols SET status = ?, patient_name = ?, updated_by = ? WHERE code = ?', 
-      [newStatus, patient_name.trim(), req.user?.id || req.session.userId, code], 
-      function (err) {
-        if (err) return res.status(500).json({ error: 'Failed to update status' });
-        
-        // Save detailed patient information to patients table
+    // Update status
+    db.run('UPDATE protocols SET status = ? WHERE code = ?', [newStatus, code], function (err) {
+      if (err) return res.status(500).json({ error: 'Failed to update status' });
+      
+      // Log activity
+      if (req.user && req.user.id) {
+        const ip = req.ip || req.connection.remoteAddress;
+        const userAgent = req.get('User-Agent');
         db.run(
-          `INSERT INTO patients (
-            protocol_code, patient_name, faskes_name, pekerjaan, status_pekerjaan,
-            status_pernikahan, alamat, tindakan, gpa_gravida, gpa_para, gpa_abortus,
-            tenaga_kesehatan, provinsi, kabupaten, created_by, created_at, updated_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-          ON CONFLICT(protocol_code) DO UPDATE SET
-            patient_name = excluded.patient_name,
-            faskes_name = excluded.faskes_name,
-            pekerjaan = excluded.pekerjaan,
-            status_pekerjaan = excluded.status_pekerjaan,
-            status_pernikahan = excluded.status_pernikahan,
-            alamat = excluded.alamat,
-            tindakan = excluded.tindakan,
-            gpa_gravida = excluded.gpa_gravida,
-            gpa_para = excluded.gpa_para,
-            gpa_abortus = excluded.gpa_abortus,
-            tenaga_kesehatan = excluded.tenaga_kesehatan,
-            provinsi = excluded.provinsi,
-            kabupaten = excluded.kabupaten,
-            updated_at = excluded.updated_at`,
-          [
-            code,
-            patient_name?.trim() || null,
-            faskes_name?.trim() || null,
-            pekerjaan?.trim() || null,
-            status_pekerjaan?.trim() || null,
-            status_pernikahan || null,
-            alamat?.trim() || null,
-            tindakan?.trim() || null,
-            gpa_gravida ? parseInt(gpa_gravida) : null,
-            gpa_para ? parseInt(gpa_para) : null,
-            gpa_abortus ? parseInt(gpa_abortus) : null,
-            tenaga_kesehatan || null,
-            provinsi?.trim() || null,
-            kabupaten?.trim() || null,
-            req.user?.id || req.session.userId,
-            getWIBTimestamp(),
-            getWIBTimestamp()
-          ],
-          function(patientErr) {
-            if (patientErr) {
-              console.error('Error saving patient data:', patientErr);
-              // Don't fail the whole operation, just log the error
-            }
-          }
+          `INSERT INTO activity_logs (user_id, action, target_type, target_id, details, ip_address, user_agent)
+           VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          [req.user.id, `scan_${newStatus}`, 'protocol', code, `Scanned and marked as ${newStatus}`, ip, userAgent]
         );
-        
-        // Log activity with patient name
-        if (req.user && req.user.id) {
-          const ip = req.ip || req.connection.remoteAddress;
-          const userAgent = req.get('User-Agent');
-          db.run(
-            `INSERT INTO activity_logs (user_id, action, target_type, target_id, details, ip_address, user_agent, created_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-            [req.user.id, `scan_${newStatus}`, 'protocol', code, 
-             `Scanned and marked as ${newStatus} for patient: ${patient_name.trim()}`, 
-             ip, userAgent, getWIBTimestamp()]
-          );
-        }
-        
-        // Emit real-time update to dashboard
-        io.emit('status_updated', { 
-          code: code, 
-          newStatus: newStatus,
-          protocol: { ...row, status: newStatus, patient_name: patient_name.trim() }
-        });
-        
-        res.json({ 
-          success: true, 
-          message: `Status diperbarui menjadi ${newStatus} untuk pasien ${patient_name.trim()}`,
-          protocol: { ...row, status: newStatus, patient_name: patient_name.trim() }
-        });
       }
-    );
+      
+      // Emit real-time update to dashboard
+      io.emit('status_updated', { 
+        code: code, 
+        newStatus: newStatus,
+        protocol: { ...row, status: newStatus }
+      });
+      
+      res.json({ 
+        success: true, 
+        message: `Status updated to ${newStatus}`,
+        protocol: { ...row, status: newStatus }
+      });
+    });
   });
 });
 
@@ -1819,18 +1433,6 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log(`Server also available on http://127.0.0.1:${PORT}`);
   console.log(`Process ID: ${process.pid}`);
   console.log(`Access the app at: http://localhost:${PORT}`);
-  // List registered GET routes for debugging /produsen issue
-  try {
-    const routes = [];
-    app._router.stack.forEach(layer => {
-      if (layer.route && layer.route.methods.get) {
-        routes.push(layer.route.path);
-      }
-    });
-    console.log('[Route List][GET]', routes);
-  } catch (e) {
-    console.log('Could not enumerate routes:', e.message);
-  }
 });
 
 server.on('error', (err) => {
@@ -1841,50 +1443,5 @@ server.on('error', (err) => {
   }
 });
 
-// Extra diagnostics to trace unexpected exits
-server.on('close', () => {
-  logFatal('server_close', 'HTTP server closed');
-});
-
-process.on('beforeExit', (code) => {
-  logFatal('beforeExit', `code=${code}`);
-});
-
-process.on('exit', (code) => {
-  logFatal('process_exit', `code=${code}`);
-});
-
-process.on('SIGINT', () => {
-  logFatal('signal', 'SIGINT received');
-});
-
-process.on('SIGTERM', () => {
-  logFatal('signal', 'SIGTERM received');
-});
-
-// Normalize accidental query-style access (?mitra) or missing leading slash (before 404)
-app.use((req, res, next) => {
-  if (req.originalUrl === '/?mitra' || req.originalUrl === '/?produsen') {
-    const target = req.originalUrl.includes('mitra') ? '/mitra' : '/produsen';
-    console.log('[Normalize Redirect]', req.originalUrl, '->', target);
-    return res.redirect(target);
-  }
-  next();
-});
-
-// Final 404 logger to help trace missing routes in production (MUST BE LAST)
-app.use((req, res, next) => {
-  console.warn('[404]', req.method, req.originalUrl, 'from', req.ip, 'instance', INSTANCE_TAG);
-  res.status(404).send(`Not Found: ${req.originalUrl}`);
-});
-
-// Extra diagnostics for mysterious early exits
-process.on('exit', (code) => {
-  console.log(`[${formatWIBTimestamp()}] Process exiting with code`, code);
-});
-process.on('SIGINT', () => {
-  console.log(`[${formatWIBTimestamp()}] Caught SIGINT (Ctrl+C)`);
-});
-process.on('SIGTERM', () => {
-  console.log(`[${formatWIBTimestamp()}] Caught SIGTERM`);
-});
+// Optional: redirect agar tautan /dashboard tidak 404
+app.get('/dashboard', (req, res) => res.redirect('/'));

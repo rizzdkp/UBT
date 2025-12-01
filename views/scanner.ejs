@@ -1,23 +1,23 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
-    <title>Scanner Barcode - Pelacak Protokol</title>
+    <title>Barcode Scanner - Protocol Tracker</title>
     
     <!-- PWA Meta Tags -->
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#E91E63">
+    <meta name="theme-color" content="#106EBE">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Scanner Protokol">
+    <meta name="apple-mobile-web-app-title" content="Protocol Scanner">
     <link rel="apple-touch-icon" href="/icons/icon-152x152.svg">
     
     <link rel="stylesheet" href="/scanner.css" />
     <link rel="stylesheet" href="/mobile-responsive.css" />
     <link rel="stylesheet" href="/toast.css" />
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-    <!-- ZXing untuk decode gambar saja -->
+    <!-- Add ZXing only for image decoding (won't affect camera scanner) -->
     <script src="https://unpkg.com/@zxing/library@0.20.0"></script>
     <script src="https://unpkg.com/@zxing/browser@0.1.4"></script>
 </head>
@@ -27,256 +27,64 @@
             <div class="header-top">
                 <% if (typeof user !== 'undefined') { %>
                     <div class="user-info">
-                        Masuk sebagai <strong><%= user.full_name || user.username %></strong>
+                        Logged in as <strong><%= user.full_name || user.username %></strong>
                         <% if (user.role === 'admin' || user.role === 'operator') { %>
-                            — <a href="/" class="back-link">📊 Dasbor</a>
+                            — <a href="/" class="back-link">📊 Dashboard</a>
                         <% } %>
-                        | <a href="/logout" class="back-link">🚪 Keluar</a>
+                        | <a href="/logout" class="back-link">🚪 Logout</a>
                     </div>
                 <% } %>
             </div>
-            <div class="header-title-section">
-                <h1>📱 Scanner Protokol</h1>
-                <p class="header-subtitle">Pindai kode QR untuk memperbarui status protokol</p>
-            </div>
+            <h1>📱 Protocol Scanner</h1>
+            <p>Scan QR code untuk update status protocol</p>
         </header>
 
-        <!-- Antarmuka Scanner -->
+        <!-- Scanner Interface -->
         <div class="scanner-section">
-            <div id="qr-reader" class="qr-reader" style="display: none;"></div>
+            <div id="qr-reader" class="qr-reader"></div>
             <div class="scanner-controls">
-                <button id="start-scan" class="btn-scan">🔍 MULAI PINDAI</button>
-                <button id="stop-scan" class="btn-stop" style="display: none;">⏹️ BERHENTI PINDAI</button>
+                <button id="start-scan" class="btn-scan">🔍 Start Scanning</button>
+                <button id="stop-scan" class="btn-stop" style="display: none;">⏹️ Stop Scanning</button>
                 <input type="file" id="image-file" accept="image/*" style="display:none" />
                 <button id="pick-image" class="btn-secondary">🖼️ Pilih Gambar</button>
             </div>
             
-            <!-- Input Manual Alternatif -->
+            <!-- Manual Input Alternative -->
             <div class="manual-input">
-                <h3>Atau Masukkan Kode Secara Manual</h3>
+                <h3>Or Enter Code Manually</h3>
                 <div class="input-group">
-                    <input type="text" id="manual-code" placeholder="Masukkan kode secara manual..." />
-                    <button id="submit-manual" class="btn-submit">CEK KODE</button>
+                    <input type="text" id="manual-code" placeholder="Enter code manually..." />
+                    <button id="submit-manual" class="btn-submit">Check Code</button>
                 </div>
             </div>
         </div>
 
-        <!-- Hasil Pemindaian -->
+        <!-- Scan Results -->
         <div id="scan-result" class="scan-result" style="display: none;">
             <div class="result-card">
-                <h3>📦 Hasil Pemindaian</h3>
+                <h3>📦 Scan Result</h3>
                 <div id="result-content"></div>
-                
-                <!-- Patient Input Section -->
-                <div class="patient-input-section" style="margin: 20px 0; padding: 20px; background: linear-gradient(135deg, #FCE4EC 0%, #F8BBD0 100%); border-radius: 12px; border: 2px solid #E91E63;">
-                    <h4 style="margin: 0 0 15px 0; color: #C2185B; font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                        <span style="font-size: 20px;">👤</span> Data Pasien OBGYN
-                    </h4>
-                    
-                    <div class="patient-form-grid" style="display: grid; grid-template-columns: 1fr; gap: 12px;">
-                        <!-- Nama Pasien (Required) -->
-                        <div class="form-group">
-                            <label for="patient-name" style="display: block; margin-bottom: 5px; font-weight: 600; color: #4a5568; font-size: 13px;">
-                                Nama Lengkap Pasien <span style="color: #ef4444;">*</span>
-                            </label>
-                            <input 
-                                type="text" 
-                                id="patient-name" 
-                                placeholder="Contoh: Ibu Siti Aminah" 
-                                required 
-                                style="width: 100%; padding: 10px 12px; border: 2px solid #E91E63; border-radius: 8px; font-size: 14px; background: white;"
-                            />
-                        </div>
-                        
-                        <!-- Nama Faskes -->
-                        <div class="form-group">
-                            <label for="faskes-name" style="display: block; margin-bottom: 5px; font-weight: 600; color: #4a5568; font-size: 13px;">
-                                Nama Faskes
-                            </label>
-                            <input 
-                                type="text" 
-                                id="faskes-name" 
-                                placeholder="Contoh: RS Budi Asih" 
-                                style="width: 100%; padding: 10px 12px; border: 2px solid #F8BBD0; border-radius: 8px; font-size: 14px; background: white;"
-                            />
-                        </div>
-                        
-                        <!-- Row: Pekerjaan & Status Pekerjaan -->
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                            <div class="form-group">
-                                <label for="pekerjaan" style="display: block; margin-bottom: 5px; font-weight: 600; color: #4a5568; font-size: 13px;">
-                                    Pekerjaan
-                                </label>
-                                <input 
-                                    type="text" 
-                                    id="pekerjaan" 
-                                    placeholder="Contoh: IRT" 
-                                    style="width: 100%; padding: 10px 12px; border: 2px solid #F8BBD0; border-radius: 8px; font-size: 14px; background: white;"
-                                />
-                            </div>
-                            <div class="form-group">
-                                <label for="status-pekerjaan" style="display: block; margin-bottom: 5px; font-weight: 600; color: #4a5568; font-size: 13px;">
-                                    Status Pekerjaan
-                                </label>
-                                <input 
-                                    type="text" 
-                                    id="status-pekerjaan" 
-                                    placeholder="Aktif/Tidak" 
-                                    style="width: 100%; padding: 10px 12px; border: 2px solid #F8BBD0; border-radius: 8px; font-size: 14px; background: white;"
-                                />
-                            </div>
-                        </div>
-                        
-                        <!-- Status Pernikahan -->
-                        <div class="form-group">
-                            <label for="status-pernikahan" style="display: block; margin-bottom: 5px; font-weight: 600; color: #4a5568; font-size: 13px;">
-                                Status Pernikahan
-                            </label>
-                            <select 
-                                id="status-pernikahan" 
-                                style="width: 100%; padding: 10px 12px; border: 2px solid #F8BBD0; border-radius: 8px; font-size: 14px; background: white;"
-                            >
-                                <option value="">-- Pilih Status --</option>
-                                <option value="MENIKAH">Menikah</option>
-                                <option value="BELUM MENIKAH">Belum Menikah</option>
-                                <option value="CERAI">Cerai</option>
-                                <option value="DUDA/JANDA">Duda/Janda</option>
-                            </select>
-                        </div>
-                        
-                        <!-- Alamat -->
-                        <div class="form-group">
-                            <label for="alamat" style="display: block; margin-bottom: 5px; font-weight: 600; color: #4a5568; font-size: 13px;">
-                                Alamat Lengkap
-                            </label>
-                            <textarea 
-                                id="alamat" 
-                                rows="2" 
-                                placeholder="Jalan, RT/RW, Kelurahan, Kecamatan" 
-                                style="width: 100%; padding: 10px 12px; border: 2px solid #F8BBD0; border-radius: 8px; font-size: 14px; background: white; resize: vertical;"
-                            ></textarea>
-                        </div>
-                        
-                        <!-- Row: Provinsi & Kabupaten -->
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                            <div class="form-group">
-                                <label for="provinsi" style="display: block; margin-bottom: 5px; font-weight: 600; color: #4a5568; font-size: 13px;">
-                                    Provinsi
-                                </label>
-                                <select 
-                                    id="provinsi" 
-                                    style="width: 100%; padding: 10px 12px; border: 2px solid #F8BBD0; border-radius: 8px; font-size: 14px; background: white;"
-                                >
-                                    <option value="">-- Pilih Provinsi --</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="kabupaten" style="display: block; margin-bottom: 5px; font-weight: 600; color: #4a5568; font-size: 13px;">
-                                    Kabupaten/Kota
-                                </label>
-                                <select 
-                                    id="kabupaten" 
-                                    style="width: 100%; padding: 10px 12px; border: 2px solid #F8BBD0; border-radius: 8px; font-size: 14px; background: white;"
-                                    disabled
-                                >
-                                    <option value="">-- Pilih Kabupaten --</option>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <!-- Tindakan -->
-                        <div class="form-group">
-                            <label for="tindakan" style="display: block; margin-bottom: 5px; font-weight: 600; color: #4a5568; font-size: 13px;">
-                                Tindakan Medis
-                            </label>
-                            <input 
-                                type="text" 
-                                id="tindakan" 
-                                placeholder="Contoh: Pemeriksaan Kehamilan, USG" 
-                                style="width: 100%; padding: 10px 12px; border: 2px solid #F8BBD0; border-radius: 8px; font-size: 14px; background: white;"
-                            />
-                        </div>
-                        
-                        <!-- GPA (Gravida, Para, Abortus) -->
-                        <div style="background: white; padding: 12px; border-radius: 8px; border: 2px solid #F8BBD0;">
-                            <label style="display: block; margin-bottom: 8px; font-weight: 700; color: #C2185B; font-size: 13px;">
-                                GPA (Gravida - Para - Abortus)
-                            </label>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
-                                <div>
-                                    <label for="gpa-gravida" style="display: block; margin-bottom: 4px; font-size: 12px; color: #6b7280;">Gravida (G)</label>
-                                    <input 
-                                        type="number" 
-                                        id="gpa-gravida" 
-                                        min="0" 
-                                        placeholder="0" 
-                                        style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;"
-                                    />
-                                </div>
-                                <div>
-                                    <label for="gpa-para" style="display: block; margin-bottom: 4px; font-size: 12px; color: #6b7280;">Para (P)</label>
-                                    <input 
-                                        type="number" 
-                                        id="gpa-para" 
-                                        min="0" 
-                                        placeholder="0" 
-                                        style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;"
-                                    />
-                                </div>
-                                <div>
-                                    <label for="gpa-abortus" style="display: block; margin-bottom: 4px; font-size: 12px; color: #6b7280;">Abortus (A)</label>
-                                    <input 
-                                        type="number" 
-                                        id="gpa-abortus" 
-                                        min="0" 
-                                        placeholder="0" 
-                                        style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Tenaga Kesehatan -->
-                        <div class="form-group">
-                            <label for="tenaga-kesehatan" style="display: block; margin-bottom: 5px; font-weight: 600; color: #4a5568; font-size: 13px;">
-                                Tenaga Kesehatan
-                            </label>
-                            <select 
-                                id="tenaga-kesehatan" 
-                                style="width: 100%; padding: 10px 12px; border: 2px solid #F8BBD0; border-radius: 8px; font-size: 14px; background: white;"
-                            >
-                                <option value="">-- Pilih --</option>
-                                <option value="RS">Rumah Sakit (RS)</option>
-                                <option value="BIDAN">Bidan</option>
-                                <option value="KLINIK">Klinik</option>
-                                <option value="PUSKESMAS">Puskesmas</option>
-                                <option value="LAINNYA">Lainnya</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                
                 <div class="action-buttons" id="action-buttons" style="display: none;">
-                    <button id="mark-terpakai" class="btn-action btn-terpakai">✅ Tandai Sebagai Terpakai</button>
-                    <button id="mark-delivered" class="btn-action btn-delivered">🚚 Tandai Sebagai Terkirim</button>
-                    <button id="scan-another" class="btn-action btn-secondary">🔄 Pindai Lagi</button>
+                    <button id="mark-terpakai" class="btn-action btn-terpakai">✅ Mark as Terpakai</button>
+                    <button id="mark-delivered" class="btn-action btn-delivered">🚚 Mark as Delivered</button>
+                    <button id="scan-another" class="btn-action btn-secondary">🔄 Scan Another</button>
                 </div>
             </div>
         </div>
 
-        <!-- Overlay Loading -->
+        <!-- Loading Overlay -->
         <div id="loading" class="loading-overlay" style="display: none;">
             <div class="spinner"></div>
-            <p>Memproses...</p>
+            <p>Processing...</p>
         </div>
 
-        <!-- Pesan Toast -->
+        <!-- Toast Messages -->
         <div id="toast" class="toast"></div>
     </div>
 
     <script>
     let html5QrcodeScanner = null;
-    let imageReader = null; // ZXing reader untuk decode gambar saja
+    let imageReader = null; // ZXing reader for image decode only
     let isScanning = false;
 
     function initScanner() {
@@ -293,57 +101,35 @@
         );
     }
 
-    // Callback untuk html5-qrcode
+    // Define callbacks for html5-qrcode
     function onScanSuccess(decodedText, decodedResult) {
         try { stopScanning(); } catch(_) {}
         if (decodedText) {
             processCode(decodedText.trim());
         }
     }
-    
     function onScanFailure(error) {
-        // Tidak menampilkan error untuk menjaga UI tetap smooth
+        // No-op: ignore frequent decode failures to keep UI smooth
     }
 
     function startScanning() {
-        const qrReaderDiv = document.getElementById('qr-reader');
-        
-        // Tampilkan QR reader dengan transisi halus
-        qrReaderDiv.style.display = 'block';
-        qrReaderDiv.style.opacity = '0';
-        qrReaderDiv.style.transition = 'opacity 0.3s ease';
-        
-        setTimeout(() => {
-            qrReaderDiv.style.opacity = '1';
-        }, 10);
-        
         if (!html5QrcodeScanner) initScanner();
         html5QrcodeScanner.render(onScanSuccess, onScanFailure);
         isScanning = true;
-        
         document.getElementById('start-scan').style.display = 'none';
         document.getElementById('stop-scan').style.display = 'inline-block';
     }
 
     function stopScanning() {
-        const qrReaderDiv = document.getElementById('qr-reader');
-        
         if (html5QrcodeScanner) {
             html5QrcodeScanner.clear();
             isScanning = false;
-            
-            // Sembunyikan QR reader dengan transisi halus
-            qrReaderDiv.style.opacity = '0';
-            setTimeout(() => {
-                qrReaderDiv.style.display = 'none';
-            }, 300);
-            
             document.getElementById('start-scan').style.display = 'inline-block';
             document.getElementById('stop-scan').style.display = 'none';
         }
     }
 
-    // Proses kode yang dipindai/dimasukkan
+    // Process scanned/entered code
     async function processCode(rawCode) {
         const code = (rawCode || '').trim();
         if (!code) {
@@ -363,314 +149,192 @@
             displayResult(data);
         } catch (err) {
             showLoading(false);
-            showToast('Gagal memeriksa kode. Periksa koneksi internet Anda.', 'error');
+            showToast('Gagal memeriksa kode. Periksa koneksi.', 'error');
         }
     }
 
-    // Tampilkan hasil pemindaian
-    function displayResult(protocol) {
-        const resultContent = document.getElementById('result-content');
-        const actionButtons = document.getElementById('action-buttons');
-        
-        const statusText = {
-            'created': 'DIBUAT',
-            'delivered': 'TERKIRIM',
-            'terpakai': 'TERPAKAI'
-        };
-        
-        resultContent.innerHTML = `
-            <div class="protocol-info">
-                <div class="info-row">
-                    <span class="label">Kode:</span>
-                    <span class="value">${protocol.code}</span>
-                </div>
-                <div class="info-row">
-                    <span class="label">Provinsi:</span>
-                    <span class="value">${protocol.province_code}</span>
-                </div>
-                <div class="info-row">
-                    <span class="label">Dibuat:</span>
-                    <span class="value">${protocol.created_at_formatted}</span>
-                </div>
-                <div class="info-row">
-                    <span class="label">Status Saat Ini:</span>
-                    <span class="value status-${protocol.status}">${statusText[protocol.status] || protocol.status.toUpperCase()}</span>
-                </div>
-            </div>
-        `;
-        
-        // Tampilkan tombol aksi hanya jika belum terpakai
-        if (protocol.status !== 'terpakai') {
-            actionButtons.style.display = 'block';
+        // Display scan result
+        function displayResult(protocol) {
+            const resultContent = document.getElementById('result-content');
+            const actionButtons = document.getElementById('action-buttons');
             
-            // Simpan kode saat ini untuk aksi
-            document.getElementById('mark-terpakai').onclick = () => confirmAction(protocol.code, 'mark_terpakai');
-            document.getElementById('mark-delivered').onclick = () => confirmAction(protocol.code, 'mark_delivered');
-        } else {
-            actionButtons.style.display = 'none';
-            showToast('Protokol ini sudah ditandai sebagai terpakai', 'info');
-        }
-        
-        document.getElementById('scan-result').style.display = 'block';
-    }
-
-    // Konfirmasi aksi sebelum memperbarui
-    function confirmAction(code, action) {
-        const actionText = action === 'mark_terpakai' ? 'TERPAKAI' : 'TERKIRIM';
-        const patientName = document.getElementById('patient-name').value.trim();
-        
-        if (!patientName) {
-            showToast('Nama pasien harus diisi!', 'error');
-            document.getElementById('patient-name').focus();
-            return;
-        }
-        
-        if (confirm(`Apakah Anda yakin ingin menandai protokol ini sebagai ${actionText} untuk pasien ${patientName}?`)) {
-            updateStatus(code, action);
-        }
-    }
-
-    // Perbarui status protokol
-    function updateStatus(code, action) {
-        showLoading(true);
-        
-        // Collect all patient data
-        const patientData = {
-            action: action,
-            patient_name: document.getElementById('patient-name')?.value.trim() || '',
-            faskes_name: document.getElementById('faskes-name')?.value.trim() || '',
-            pekerjaan: document.getElementById('pekerjaan')?.value.trim() || '',
-            status_pekerjaan: document.getElementById('status-pekerjaan')?.value.trim() || '',
-            status_pernikahan: document.getElementById('status-pernikahan')?.value || '',
-            alamat: document.getElementById('alamat')?.value.trim() || '',
-            tindakan: document.getElementById('tindakan')?.value.trim() || '',
-            gpa_gravida: document.getElementById('gpa-gravida')?.value || null,
-            gpa_para: document.getElementById('gpa-para')?.value || null,
-            gpa_abortus: document.getElementById('gpa-abortus')?.value || null,
-            tenaga_kesehatan: document.getElementById('tenaga-kesehatan')?.value || '',
-            provinsi: document.getElementById('provinsi')?.selectedOptions[0]?.text || '',
-            kabupaten: document.getElementById('kabupaten')?.value || ''
-        };
-        
-        fetch(`/api/confirm-usage/${code}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(patientData)
-        })
-        .then(response => response.json())
-        .then(data => {
-            showLoading(false);
-            if (data.success) {
-                showToast(data.message, 'success');
-                displayResult(data.protocol); // Refresh tampilan
-                // Clear all inputs setelah berhasil
-                clearPatientForm();
+            resultContent.innerHTML = `
+                <div class="protocol-info">
+                    <div class="info-row">
+                        <span class="label">Code:</span>
+                        <span class="value">${protocol.code}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Province:</span>
+                        <span class="value">${protocol.province_code}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Created:</span>
+                        <span class="value">${protocol.created_at_formatted}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Current Status:</span>
+                        <span class="value status-${protocol.status}">${protocol.status.toUpperCase()}</span>
+                    </div>
+                </div>
+            `;
+            
+            // Show action buttons only if not already terpakai
+            if (protocol.status !== 'terpakai') {
+                actionButtons.style.display = 'block';
+                
+                // Store current code for actions
+                document.getElementById('mark-terpakai').onclick = () => confirmAction(protocol.code, 'mark_terpakai');
+                document.getElementById('mark-delivered').onclick = () => confirmAction(protocol.code, 'mark_delivered');
             } else {
-                showToast(data.error || 'Gagal memperbarui status', 'error');
+                actionButtons.style.display = 'none';
+                showToast('This protocol is already marked as terpakai', 'info');
             }
-        })
-        .catch(error => {
-            showLoading(false);
-            showToast('Error saat memperbarui status', 'error');
-        });
-    }
-    
-    // Clear form setelah submit berhasil
-    function clearPatientForm() {
-        document.getElementById('patient-name').value = '';
-        document.getElementById('faskes-name').value = '';
-        document.getElementById('pekerjaan').value = '';
-        document.getElementById('status-pekerjaan').value = '';
-        document.getElementById('status-pernikahan').value = '';
-        document.getElementById('alamat').value = '';
-        document.getElementById('tindakan').value = '';
-        document.getElementById('gpa-gravida').value = '';
-        document.getElementById('gpa-para').value = '';
-        document.getElementById('gpa-abortus').value = '';
-        document.getElementById('tenaga-kesehatan').value = '';
-        document.getElementById('provinsi').value = '';
-        document.getElementById('kabupaten').value = '';
-        document.getElementById('kabupaten').disabled = true;
-    }
-
-    // Tampilkan/sembunyikan loading
-    function showLoading(show) {
-        document.getElementById('loading').style.display = show ? 'flex' : 'none';
-    }
-
-    // Tampilkan pesan toast
-    function showToast(message, type = 'info') {
-        const toast = document.getElementById('toast');
-        toast.textContent = message;
-        toast.className = `toast toast-${type} show`;
-        
-        setTimeout(() => {
-            toast.classList.remove('show');
-        }, 3000);
-    }
-
-    // Event listeners
-    document.getElementById('start-scan').addEventListener('click', startScanning);
-    document.getElementById('stop-scan').addEventListener('click', stopScanning);
-    
-    // Pilih gambar dari galeri dan decode dengan ZXing
-    const pickBtn = document.getElementById('pick-image');
-    const fileInput = document.getElementById('image-file');
-    if (pickBtn && fileInput) {
-        pickBtn.addEventListener('click', () => fileInput.click());
-        fileInput.addEventListener('change', async (e) => {
-            const file = e.target.files && e.target.files[0];
-            if (!file) return;
             
-            // Hentikan pemindaian langsung untuk membebaskan kamera
-            try { stopScanning(); } catch (_) {}
+            document.getElementById('scan-result').style.display = 'block';
+        }
+
+        // Confirm action before updating
+        function confirmAction(code, action) {
+            const actionText = action === 'mark_terpakai' ? 'TERPAKAI' : 'DELIVERED';
+            
+            if (confirm(`Are you sure you want to mark this protocol as ${actionText}?`)) {
+                updateStatus(code, action);
+            }
+        }
+
+        // Update protocol status
+        function updateStatus(code, action) {
             showLoading(true);
             
-            try {
-                if (!imageReader) imageReader = new ZXingBrowser.BrowserMultiFormatReader();
-                const img = new Image();
-                
-                img.onload = async () => {
-                    try {
-                        const result = await imageReader.decodeFromImageElement(img);
-                        showLoading(false);
-                        if (result && result.getText()) {
-                            processCode(result.getText().trim());
-                        } else {
-                            showToast('Tidak bisa membaca barcode dari gambar', 'error');
-                        }
-                    } catch (err) {
-                        showLoading(false);
-                        console.error(err);
-                        showToast('Gagal membaca barcode dari gambar', 'error');
-                    } finally {
-                        URL.revokeObjectURL(img.src);
-                        e.target.value = '';
-                    }
-                };
-                
-                img.onerror = () => {
-                    showLoading(false);
-                    showToast('File gambar tidak valid', 'error');
-                };
-                
-                img.src = URL.createObjectURL(file);
-            } catch (err) {
+            fetch(`/api/confirm-usage/${code}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ action })
+            })
+            .then(response => response.json())
+            .then(data => {
                 showLoading(false);
-                console.error(err);
-                showToast('Terjadi kesalahan saat memproses gambar', 'error');
-            }
-        });
-    }
-    
-    document.getElementById('submit-manual').addEventListener('click', () => {
-        const code = document.getElementById('manual-code').value.trim();
-        if (code) {
-            processCode(code);
-        } else {
-            showToast('Mohon isi kode terlebih dahulu', 'error');
-        }
-    });
-
-    document.getElementById('manual-code').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            document.getElementById('submit-manual').click();
-        }
-    });
-
-    document.getElementById('scan-another').addEventListener('click', () => {
-        document.getElementById('scan-result').style.display = 'none';
-        document.getElementById('manual-code').value = '';
-        startScanning();
-    });
-
-    // Load provinsi dan kabupaten data
-    let regionsData = null;
-    
-    async function loadRegionsData() {
-        try {
-            const response = await fetch('/indonesia-regions.json');
-            regionsData = await response.json();
-            populateProvinsiDropdown();
-        } catch (error) {
-            console.error('Error loading regions data:', error);
-        }
-    }
-    
-    function populateProvinsiDropdown() {
-        const provinsiSelect = document.getElementById('provinsi');
-        if (!provinsiSelect || !regionsData) return;
-        
-        // Clear existing options except the first one
-        provinsiSelect.innerHTML = '<option value="">-- Pilih Provinsi --</option>';
-        
-        // Add provinces
-        regionsData.provinces.forEach(prov => {
-            const option = document.createElement('option');
-            option.value = prov.code;
-            option.textContent = prov.name;
-            option.dataset.kabupatens = JSON.stringify(prov.kabupatens);
-            provinsiSelect.appendChild(option);
-        });
-    }
-    
-    function populateKabupatenDropdown(kabupatens) {
-        const kabupatenSelect = document.getElementById('kabupaten');
-        if (!kabupatenSelect) return;
-        
-        // Clear and enable
-        kabupatenSelect.innerHTML = '<option value="">-- Pilih Kabupaten/Kota --</option>';
-        kabupatenSelect.disabled = false;
-        
-        // Add kabupatens
-        if (kabupatens && Array.isArray(kabupatens)) {
-            kabupatens.forEach(kab => {
-                const option = document.createElement('option');
-                option.value = kab;
-                option.textContent = kab;
-                kabupatenSelect.appendChild(option);
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    displayResult(data.protocol); // Refresh display
+                } else {
+                    showToast(data.error || 'Failed to update status', 'error');
+                }
+            })
+            .catch(error => {
+                showLoading(false);
+                showToast('Error updating status', 'error');
             });
         }
-    }
-    
-    // Event listener for provinsi change
-    document.getElementById('provinsi')?.addEventListener('change', function() {
-        const selectedOption = this.selectedOptions[0];
-        if (selectedOption && selectedOption.dataset.kabupatens) {
-            try {
-                const kabupatens = JSON.parse(selectedOption.dataset.kabupatens);
-                populateKabupatenDropdown(kabupatens);
-            } catch (e) {
-                console.error('Error parsing kabupatens:', e);
-            }
-        } else {
-            document.getElementById('kabupaten').innerHTML = '<option value="">-- Pilih Kabupaten --</option>';
-            document.getElementById('kabupaten').disabled = true;
-        }
-    });
-    
-    // Inisialisasi saat load
-    initScanner();
-    loadRegionsData();
 
-    // Unregister Service Worker lama dari Vercel
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-            for(let registration of registrations) {
-                registration.unregister().then(function(success) {
-                    console.log('SW unregistered:', success);
-                });
+        // Show/hide loading
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'flex' : 'none';
+        }
+
+        // Show toast message
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast toast-${type} show`;
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Event listeners
+        document.getElementById('start-scan').addEventListener('click', startScanning);
+        document.getElementById('stop-scan').addEventListener('click', stopScanning);
+        
+        // Pick image from gallery and decode with ZXing (single, robust handler)
+        const pickBtn = document.getElementById('pick-image');
+        const fileInput = document.getElementById('image-file');
+        if (pickBtn && fileInput) {
+            pickBtn.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', async (e) => {
+                const file = e.target.files && e.target.files[0];
+                if (!file) return;
+                // Stop live scan to free camera while decoding image
+                try { stopScanning(); } catch (_) {}
+                showLoading(true);
+                try {
+                    if (!imageReader) imageReader = new ZXingBrowser.BrowserMultiFormatReader();
+                    const img = new Image();
+                    img.onload = async () => {
+                        try {
+                            const result = await imageReader.decodeFromImageElement(img);
+                            showLoading(false);
+                            if (result && result.getText()) {
+                                processCode(result.getText().trim());
+                            } else {
+                                showToast('Tidak bisa membaca barcode dari gambar', 'error');
+                            }
+                        } catch (err) {
+                            showLoading(false);
+                            console.error(err);
+                            showToast('Gagal membaca barcode dari gambar', 'error');
+                        } finally {
+                            URL.revokeObjectURL(img.src);
+                            e.target.value = '';
+                        }
+                    };
+                    img.onerror = () => {
+                        showLoading(false);
+                        showToast('File gambar tidak valid', 'error');
+                    };
+                    img.src = URL.createObjectURL(file);
+                } catch (err) {
+                    showLoading(false);
+                    console.error(err);
+                    showToast('Terjadi kesalahan saat memproses gambar', 'error');
+                }
+            });
+        }
+        
+        document.getElementById('submit-manual').addEventListener('click', () => {
+            const code = document.getElementById('manual-code').value.trim();
+            if (code) {
+                processCode(code);
+            } else {
+                showToast('Mohon isi kode terlebih dahulu', 'error');
             }
         });
-        // Hapus semua cache
-        caches.keys().then(function(names) {
-            for (let name of names) {
-                caches.delete(name);
+
+        document.getElementById('manual-code').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('submit-manual').click();
             }
         });
-    }
+
+        document.getElementById('scan-another').addEventListener('click', () => {
+            document.getElementById('scan-result').style.display = 'none';
+            document.getElementById('manual-code').value = '';
+            startScanning();
+        });
+
+    // Initialize on load
+    initScanner();
+
+        // Unregister old Service Worker from Vercel
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let registration of registrations) {
+                    registration.unregister().then(function(success) {
+                        console.log('SW unregistered:', success);
+                    });
+                }
+            });
+            // Clear all caches
+            caches.keys().then(function(names) {
+                for (let name of names) {
+                    caches.delete(name);
+                }
+            });
+        }
     </script>
     <script src="/toast.js"></script>
 </body>
