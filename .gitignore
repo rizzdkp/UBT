@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Dependencies
 node_modules/
 
@@ -12,28 +11,6 @@ npm-debug.log*
 
 # Database
 *.db-journal
-=======
-# Node modules
-node_modules/
-
-# Environment variables
-.env
-.env.local
-.env.production
-
-# Database
-data.db
-
-# SSL Certificates (self-signed)
-server.key
-server.cert
-*.pem
-
-# Logs
-*.log
-error.log
-npm-debug.log*
->>>>>>> 8b1d74ab4ddbaa865b57b56a91a92550b54fa6f4
 
 # OS files
 .DS_Store
@@ -42,17 +19,10 @@ Thumbs.db
 # IDE
 .vscode/
 .idea/
-<<<<<<< HEAD
 *.swp
 *.swo
 
 # Build artifacts
 dist/
 build/
-=======
-
-# Temporary files
-*.tmp
-temp/
-C:\temp\
->>>>>>> 8b1d74ab4ddbaa865b57b56a91a92550b54fa6f4
+data.db
