@@ -1,6 +1,6 @@
 @echo off
 REM Use script directory as working directory
-cd /d "%~dp0"
+cd /d "D:\KULIAH\SEMESTER\5\DTK\UBT TER\UBT-test"
 echo Starting Barcode Protocol Server...
 echo Working directory: %CD%
 echo Node version:

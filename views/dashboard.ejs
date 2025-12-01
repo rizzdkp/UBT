@@ -7,7 +7,7 @@
     
     <!-- PWA Meta Tags -->
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#106EBE">
+    <meta name="theme-color" content="#E91E63">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Protokol Barcode">
@@ -144,14 +144,14 @@
       .metric-card {
         flex: 1;
         min-width: 180px;
-        background: linear-gradient(135deg, #106EBE 0%, #0d4f88 100%);
+        background: linear-gradient(135deg, #E91E63 0%, #9C27B0 100%);
         color: white;
         padding: 20px;
         border-radius: 12px;
         display: flex;
         align-items: center;
         gap: 15px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 15px rgba(233,30,99,0.3);
         text-shadow: 0 1px 2px rgba(0,0,0,0.35);
       }
       
@@ -418,23 +418,13 @@
           <% if (user.role) { %>(<%= user.role %>)<% } %> — 
           <a href="/produsen">Buat Protokol</a> |
           <a href="/scanner">Scanner</a> |
+          <% if (user.role === 'admin' || user.role === 'operator') { %>
+            <a href="/mitra">Mitra</a> |
+          <% } %>
           <% if (user.role === 'admin') { %>
-            <a href="/users">Pengguna</a> | 
+            <a href="/users">Pengguna</a> |
           <% } %>
           <a href="/logout">Keluar</a>
-          <% if (user.role === 'admin' || user.role === 'operator') { %>
-            <button id="partnerDropdownToggle" class="btn-primary" style="margin-left:10px; padding:6px 12px; font-size:12px;">📋 Mitra</button>
-            <div id="partnerDropdown" class="partner-dropdown">
-              <div class="pd-header">
-                <strong>Daftar Mitra</strong>
-                <button type="button" id="closePartnerDropdown" aria-label="Tutup">✕</button>
-              </div>
-              <div class="pd-body" id="partnerListContainer">
-                <div class="pd-loading">Memuat mitra...</div>
-              </div>
-              <div class="pd-footer"><small>Max 200 terbaru • Klik hapus untuk menghapus</small></div>
-            </div>
-          <% } %>
         </div>
       </header>
 
@@ -442,23 +432,7 @@
         <style>
           .header-title{display:flex;align-items:center;gap:10px}
           .brand-badge{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#E91E63 0%,#9C27B0 100%);color:#fff;box-shadow:0 4px 12px rgba(233,30,99,.35)}
-          .partner-dropdown { position: absolute; top:70px; right:20px; width:340px; background:#fff; border:2px solid #E91E63; border-radius:14px; box-shadow:0 12px 32px rgba(233,30,99,.25); padding:10px 0; display:none; z-index:1000; }
-          .partner-dropdown.show { display:block; animation:fadeIn .18s ease; }
-          @keyframes fadeIn { from { opacity:0; transform:translateY(-6px);} to { opacity:1; transform:translateY(0);} }
-          .pd-header { display:flex; justify-content:space-between; align-items:center; padding:6px 14px 10px; border-bottom:1px solid #fce4ec; }
-          .pd-header strong { font-size:14px; color:#C2185B; }
-          .pd-header button { background:none; border:none; cursor:pointer; font-size:14px; color:#9C27B0; font-weight:700; }
-          .pd-body { max-height:320px; overflow-y:auto; }
-          .pd-item { display:flex; gap:10px; align-items:flex-start; padding:10px 14px; border-bottom:1px solid #f8d5e4; }
-          .pd-item:last-child { border-bottom:none; }
-          .pd-name { font-weight:600; font-size:13px; color:#2d3748; }
-          .pd-meta { font-size:11px; color:#6b7280; }
-          .pd-delete { margin-left:auto; background:linear-gradient(135deg,#ef4444,#dc2626); color:#fff; border:none; border-radius:6px; padding:4px 8px; font-size:11px; font-weight:700; cursor:pointer; box-shadow:0 2px 6px rgba(220,38,38,.4); }
-          .pd-delete:hover { background:linear-gradient(135deg,#dc2626,#b91c1c); }
-          .pd-empty { padding:30px 20px; text-align:center; font-size:12px; color:#6b7280; }
-          .pd-loading { padding:30px 20px; text-align:center; font-size:12px; color:#C2185B; }
-          .pd-footer { padding:8px 14px 4px; border-top:1px solid #fce4ec; text-align:right; font-size:10px; color:#9c4a7d; }
-          @media (max-width:640px){ .partner-dropdown { position:fixed; top:90px; right:10px; left:10px; width:auto; } }
+          /* Mitra dropdown removed; dedicated dashboard at /mitra */
           .protocol-cta { background: linear-gradient(180deg, #FDE2F3 0%, #F8BBD0 60%, #FCE4EC 100%); border: 2px solid rgba(233, 30, 99, 0.6); border-radius: 12px; padding: 22px; text-align: center; box-shadow: 0 8px 24px rgba(233, 30, 99, 0.12); }
           .protocol-cta__header { display: flex; align-items: center; justify-content: center; gap: 10px; color:#7b1fa2; font-weight: 800; font-size: 20px; }
           .protocol-cta__icon { font-size: 22px; }
@@ -567,12 +541,12 @@
 
       <!-- Stok Langsung & Analitik -->
       <section>
-        <h2>📊 Stok Langsung & Analitik</h2>
+        <h2>🎯 Stok Langsung & Analitik</h2>
         
         <!-- Metrik Kinerja -->
         <div class="metrics-grid">
           <div class="metric-card">
-            <div class="metric-icon">📊</div>
+            <div class="metric-icon">📋</div>
             <div class="metric-content">
               <div class="metric-number"><%= analytics.metrics.total_protocols || 0 %></div>
               <div class="metric-label">Total Protokol</div>
@@ -610,7 +584,7 @@
 
         <!-- Tabel Kinerja Mitra dengan STATUS BREAKDOWN dan NAMA PASIEN -->
         <div class="analytics-section">
-          <h3>🏆 Kinerja & Stok Mitra</h3>
+          <h3>💎 Kinerja & Stok Mitra</h3>
           <div class="partner-performance-table">
             <table class="performance-table">
               <thead>
@@ -1125,7 +1099,6 @@
 
       document.addEventListener('DOMContentLoaded', function() {
         initializeCharts();
-        setupPartnerDropdown();
       });
 
       function initializeCharts() {
@@ -1230,79 +1203,7 @@
         });
       }
 
-      function setupPartnerDropdown(){
-        const toggleBtn = document.getElementById('partnerDropdownToggle');
-        const dropdown = document.getElementById('partnerDropdown');
-        const closeBtn = document.getElementById('closePartnerDropdown');
-        const listContainer = document.getElementById('partnerListContainer');
-        if(!toggleBtn || !dropdown) return;
-
-        let loaded = false;
-
-        function renderPartners(data){
-          if(!data.partners || data.partners.length === 0){
-            listContainer.innerHTML = '<div class="pd-empty">Belum ada mitra ditambahkan.</div>';
-            return;
-          }
-          listContainer.innerHTML = data.partners.map(p => {
-            const canDelete = p.protocol_count === 0; // allow delete only if zero protocols
-            return `<div class="pd-item" data-id="${p.id}">
-              <div>
-                <div class="pd-name">${p.name} <span style='font-weight:400; color:#6b7280;'>(${p.code})</span></div>
-                <div class="pd-meta">${p.type.replace('_',' ').toUpperCase()} • Prov: ${p.province_code || '-'} • Protokol: ${p.protocol_count}</div>
-              </div>
-              ${canDelete ? `<button class='pd-delete' data-id='${p.id}' title='Hapus mitra'>Hapus</button>` : '<span style="margin-left:auto;font-size:10px;color:#9c4a7d;font-weight:600;">Dipakai</span>'}
-            </div>`;
-          }).join('');
-        }
-
-        function loadPartners(){
-          listContainer.innerHTML = '<div class="pd-loading">Memuat mitra...</div>';
-          fetch('/api/partners-all')
-            .then(r => {
-              if(!r.ok){
-                const msg = r.status === 404 ? 'Endpoint tidak ditemukan. Restart server diperlukan.' : 'Gagal memuat ('+r.status+').';
-                throw new Error(msg);
-              }
-              return r.json();
-            })
-            .then(data => { renderPartners(data); attachDeleteHandlers(); loaded = true; })
-            .catch(err => { console.error(err); listContainer.innerHTML = '<div class="pd-empty">'+(err.message||'Gagal memuat mitra.')+'</div>'; });
-        }
-
-        function attachDeleteHandlers(){
-          dropdown.querySelectorAll('.pd-delete').forEach(btn => {
-            btn.addEventListener('click', () => {
-              const id = btn.dataset.id;
-              if(!confirm('Hapus mitra ini?')) return;
-              btn.disabled = true; btn.textContent = '...';
-              fetch('/api/partners/' + id, { method:'DELETE' })
-                .then(r => r.json())
-                .then(resp => {
-                  if(resp.success){
-                    const item = dropdown.querySelector('.pd-item[data-id="' + id + '"]');
-                    if(item) item.remove();
-                    if(!dropdown.querySelector('.pd-item')) listContainer.innerHTML = '<div class="pd-empty">Belum ada mitra ditambahkan.</div>';
-                    showToast('Mitra dihapus.', 'success');
-                  } else {
-                    showToast(resp.error || 'Gagal hapus mitra', 'error');
-                    btn.disabled = false; btn.textContent = 'Hapus';
-                  }
-                })
-                .catch(e => { console.error(e); showToast('Error jaringan', 'error'); btn.disabled = false; btn.textContent='Hapus'; });
-            });
-          });
-        }
-
-        toggleBtn.addEventListener('click', () => {
-          dropdown.classList.toggle('show');
-          if(dropdown.classList.contains('show') && !loaded){ loadPartners(); }
-        });
-        if(closeBtn){ closeBtn.addEventListener('click', () => dropdown.classList.remove('show')); }
-        document.addEventListener('click', (e) => {
-          if(!dropdown.contains(e.target) && e.target !== toggleBtn){ dropdown.classList.remove('show'); }
-        });
-      }
+      /* setupPartnerDropdown removed; see /mitra dashboard */
 
       const mobileMenuToggle = document.getElementById('mobileMenuToggle');
       const mobileNav = document.getElementById('mobileNav');

@@ -23,6 +23,7 @@
 					Masuk sebagai <strong><%= user.full_name || user %></strong>
 					<% if (user.role) { %>(<%= user.role %>)<% } %> —
 					<a href="/">Dasbor</a> |
+					<a href="/mitra">Mitra</a> |
 					<!-- Mitra link removed per request -->
 					<a href="/scanner">Scanner</a> |
 					<% if (user.role === 'admin') { %>

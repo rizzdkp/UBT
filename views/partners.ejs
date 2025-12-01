@@ -7,7 +7,7 @@
     
     <!-- PWA Meta Tags -->
     <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#106EBE">
+  <meta name="theme-color" content="#E91E63">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Barcode Protocol">
@@ -164,16 +164,17 @@
                   <br><small>by <%= partner.created_by_username %></small>
                 <% } %>
               </td>
-              <td>
+              <td class="action-buttons">
+                <% if (user.role === 'admin' || user.role === 'operator') { %>
+                  <button type="button" class="btn-small btn-info" onclick="openEditModal(<%= partner.id %>, '<%= partner.name.replace(/'/g, "\\'") %>', '<%= partner.type %>', '<%= partner.code %>', '<%= partner.province_code %>', '<%= (partner.phone || '').replace(/'/g, "\\'") %>', '<%= (partner.email || '').replace(/'/g, "\\'") %>', '<%= (partner.address || '').replace(/'/g, "\\'").replace(/\n/g, ' ') %>')">
+                    ✏️ Edit
+                  </button>
+                  <br>
+                <% } %>
                 <% if (user.role === 'admin') { %>
-                  <form method="post" action="/partners/<%= partner.id %>/toggle-status" style="display: inline;">
-                    <button type="submit" class="btn-small <%= partner.is_active ? 'btn-warning' : 'btn-success' %>">
-                      <%= partner.is_active ? 'Deactivate' : 'Activate' %>
-                    </button>
-                  </form>
-                  <form method="post" action="/partners/<%= partner.id %>/delete" style="display: inline;" onsubmit="return confirm('Hapus mitra ini? Tindakan ini tidak dapat dibatalkan.');">
-                    <button type="submit" class="btn-small btn-danger">Delete</button>
-                  </form>
+                  <button type="button" class="btn-small btn-danger" onclick="confirmDelete(<%= partner.id %>, '<%= partner.name.replace(/'/g, "\\'") %>', <%= partner.protocol_count || 0 %>)" style="margin-top: 5px;">
+                    🗑️ Delete
+                  </button>
                 <% } %>
               </td>
             </tr>
@@ -355,6 +356,9 @@
         border-radius: 4px;
         cursor: pointer;
         font-weight: bold;
+        display: inline-block;
+        margin: 2px;
+        vertical-align: middle;
       }
       
       .btn-warning {
@@ -375,9 +379,20 @@
         background: #218838;
       }
       
+      /* Action column styling */
+      .partners-table td:last-child {
+        white-space: nowrap;
+        min-width: 200px;
+      }
+      
+      .partners-table form {
+        display: inline-block;
+        margin: 0;
+      }
+      
       .btn-primary { background: var(--gradient-primary); color:#fff; border:none; border-radius:8px; padding:12px 20px; font-weight:700; }
       .btn-primary:hover { background: linear-gradient(135deg, var(--color-primary-600) 0%, var(--color-primary-700) 100%); }
-      .btn-danger { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color:#fff; border:none; border-radius:6px; padding:8px 12px; font-weight:700; }
+      .btn-danger { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color:#fff; border:none; border-radius:6px; padding:8px 12px; font-weight:700; min-width: 90px; }
       .btn-danger:hover { background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); }
       
       .no-data {
@@ -399,14 +414,452 @@
         
         .partners-table {
           font-size: 12px;
+          overflow-x: auto;
+          display: block;
         }
         
         .partners-table th,
         .partners-table td {
           padding: 8px 4px;
         }
+        
+        .modal-content {
+          width: 95%;
+          margin: 2% auto;
+        }
+        
+        .modal-body {
+          padding: 20px 15px;
+        }
+        
+        .btn-small {
+          font-size: 10px;
+          padding: 3px 6px;
+          margin: 2px 0;
+          display: inline-block;
+        }
+        
+        .partners-table td:last-child {
+          white-space: normal;
+          min-width: auto;
+        }
+        
+        td {
+          white-space: nowrap;
+        }
+      }
+      
+      .btn-info {
+        background: #17a2b8;
+        color: white;
+        padding: 6px 12px !important;
+        font-size: 12px !important;
+        min-width: 90px;
+      }
+      
+      .btn-info:hover {
+        background: #138496;
+      }
+      
+      /* Action buttons column styling */
+      .partners-table td.action-buttons {
+        white-space: normal;
+        min-width: 100px;
+        text-align: center;
+        padding: 8px !important;
+      }
+      
+      .partners-table .action-buttons .btn-small {
+        display: block;
+        width: 100%;
+        margin: 3px auto;
+        padding: 6px 10px;
+        font-size: 11px;
+        font-weight: 700;
+      }
+      
+      /* Modal Styles */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+        overflow-y: auto;
+      }
+      
+      .modal-content {
+        background-color: #fefefe;
+        margin: 5% auto;
+        padding: 0;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 600px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        animation: slideDown 0.3s ease-out;
+      }
+      
+      @keyframes slideDown {
+        from {
+          transform: translateY(-50px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+      
+      .modal-header {
+        padding: 20px 30px;
+        background: linear-gradient(135deg, #106EBE 0%, #0d4f88 100%);
+        color: white;
+        border-radius: 12px 12px 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      
+      .modal-header h3 {
+        margin: 0;
+        font-size: 20px;
+      }
+      
+      .close {
+        color: white;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+        background: none;
+        border: none;
+        padding: 0;
+        line-height: 1;
+      }
+      
+      .close:hover,
+      .close:focus {
+        opacity: 0.7;
+      }
+      
+      .modal-body {
+        padding: 30px;
+      }
+      
+      .modal-footer {
+        padding: 20px 30px;
+        background: #f8f9fa;
+        border-radius: 0 0 12px 12px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+      }
+      
+      .btn-cancel {
+        background: #6c757d;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: bold;
+      }
+      
+      .btn-cancel:hover {
+        background: #5a6268;
+      }
+      
+      .btn-save {
+        background: linear-gradient(135deg, #106EBE 0%, #0d4f88 100%);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: bold;
+      }
+      
+      .btn-save:hover {
+        opacity: 0.9;
+      }
+      
+      .btn-save:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      
+      /* Delete Confirmation Modal */
+      .confirm-dialog {
+        text-align: center;
+      }
+      
+      .confirm-dialog .warning-icon {
+        font-size: 48px;
+        color: #dc3545;
+        margin-bottom: 20px;
+      }
+      
+      .confirm-dialog h3 {
+        margin: 0 0 15px 0;
+        color: #333;
+      }
+      
+      .confirm-dialog p {
+        color: #666;
+        margin: 10px 0;
+      }
+      
+      .confirm-dialog .partner-name {
+        font-weight: bold;
+        color: #106EBE;
+        font-size: 18px;
+      }
+      
+      .confirm-dialog .warning-text {
+        background: #fff3cd;
+        border: 1px solid #ffc107;
+        border-radius: 6px;
+        padding: 10px;
+        margin: 15px 0;
+        color: #856404;
       }
     </style>
+    
+    <!-- Edit Partner Modal -->
+    <div id="editModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Edit Partner</h3>
+          <button class="close" onclick="closeEditModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <form id="editPartnerForm">
+            <input type="hidden" id="edit_partner_id" name="partner_id">
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label for="edit_name">Nama Mitra *</label>
+                <input type="text" id="edit_name" name="name" required placeholder="Nama lengkap mitra">
+              </div>
+              <div class="form-group">
+                <label for="edit_type">Jenis Mitra *</label>
+                <select id="edit_type" name="type" required>
+                  <option value="">Pilih Jenis</option>
+                  <option value="klinik">Klinik</option>
+                  <option value="puskesmas">Puskesmas</option>
+                  <option value="rumah_sakit">Rumah Sakit</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label for="edit_code">Kode Mitra *</label>
+                <input type="text" id="edit_code" name="code" required placeholder="Kode unik" maxlength="10">
+              </div>
+              <div class="form-group">
+                <label for="edit_province_code">Provinsi *</label>
+                <select id="edit_province_code" name="province_code" required>
+                  <option value="">Pilih Provinsi</option>
+                  <% provinces.forEach(function(p){ %>
+                  <option value="<%= p.code %>"><%= p.name %> (<%= p.code %>)</option>
+                  <% }) %>
+                </select>
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label for="edit_phone">Telepon</label>
+                <input type="tel" id="edit_phone" name="phone" placeholder="Nomor telepon">
+              </div>
+              <div class="form-group">
+                <label for="edit_email">Email</label>
+                <input type="email" id="edit_email" name="email" placeholder="Email kontak">
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="edit_address">Alamat</label>
+              <textarea id="edit_address" name="address" rows="3" placeholder="Alamat lengkap mitra"></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" onclick="closeEditModal()">Cancel</button>
+          <button type="button" class="btn-save" onclick="savePartner()">Save Changes</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Confirm Delete</h3>
+          <button class="close" onclick="closeDeleteModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="confirm-dialog">
+            <div class="warning-icon">⚠️</div>
+            <h3>Delete Partner?</h3>
+            <p>Are you sure you want to delete:</p>
+            <p class="partner-name" id="delete_partner_name"></p>
+            <div class="warning-text" id="protocol_warning" style="display: none;">
+              <strong>⚠️ Warning:</strong> This partner has <span id="protocol_count_text"></span> associated protocol(s). Deletion is not allowed.
+            </div>
+            <p id="delete_confirm_text">This action cannot be undone.</p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" onclick="closeDeleteModal()">Cancel</button>
+          <button type="button" class="btn-danger" id="confirmDeleteBtn" onclick="executeDelete()">Delete Partner</button>
+        </div>
+      </div>
+    </div>
+    
     <script src="/toast.js"></script>
+    <script>
+      let currentDeleteId = null;
+      
+      // Edit Modal Functions
+      function openEditModal(id, name, type, code, province, phone, email, address) {
+        document.getElementById('edit_partner_id').value = id;
+        document.getElementById('edit_name').value = name;
+        document.getElementById('edit_type').value = type;
+        document.getElementById('edit_code').value = code;
+        document.getElementById('edit_province_code').value = province;
+        document.getElementById('edit_phone').value = phone || '';
+        document.getElementById('edit_email').value = email || '';
+        document.getElementById('edit_address').value = address || '';
+        
+        document.getElementById('editModal').style.display = 'block';
+      }
+      
+      function closeEditModal() {
+        document.getElementById('editModal').style.display = 'none';
+      }
+      
+      async function savePartner() {
+        const form = document.getElementById('editPartnerForm');
+        const partnerId = document.getElementById('edit_partner_id').value;
+        
+        // Validate form
+        if (!form.checkValidity()) {
+          form.reportValidity();
+          return;
+        }
+        
+        const formData = {
+          name: document.getElementById('edit_name').value,
+          type: document.getElementById('edit_type').value,
+          code: document.getElementById('edit_code').value,
+          province_code: document.getElementById('edit_province_code').value,
+          phone: document.getElementById('edit_phone').value,
+          email: document.getElementById('edit_email').value,
+          address: document.getElementById('edit_address').value
+        };
+        
+        // Disable save button
+        const saveBtn = event.target;
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Saving...';
+        
+        try {
+          const response = await fetch(`/partners/${partnerId}/edit`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+          });
+          
+          const result = await response.json();
+          
+          if (result.success) {
+            showSuccessToast('Berhasil!', 'Partner berhasil diperbarui');
+            closeEditModal();
+            // Reload page to show updated data
+            setTimeout(() => {
+              window.location.reload();
+            }, 1000);
+          } else {
+            showErrorToast('Error!', result.error || 'Gagal memperbarui partner');
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Save Changes';
+          }
+        } catch (error) {
+          console.error('Error updating partner:', error);
+          showErrorToast('Error!', 'Terjadi kesalahan jaringan. Silakan coba lagi.');
+          saveBtn.disabled = false;
+          saveBtn.textContent = 'Save Changes';
+        }
+      }
+      
+      // Delete Modal Functions
+      function confirmDelete(id, name, protocolCount) {
+        currentDeleteId = id;
+        document.getElementById('delete_partner_name').textContent = name;
+        
+        const protocolWarning = document.getElementById('protocol_warning');
+        const confirmBtn = document.getElementById('confirmDeleteBtn');
+        const confirmText = document.getElementById('delete_confirm_text');
+        
+        if (protocolCount > 0) {
+          document.getElementById('protocol_count_text').textContent = protocolCount;
+          protocolWarning.style.display = 'block';
+          confirmBtn.disabled = true;
+          confirmBtn.style.opacity = '0.5';
+          confirmBtn.style.cursor = 'not-allowed';
+          confirmText.style.display = 'none';
+        } else {
+          protocolWarning.style.display = 'none';
+          confirmBtn.disabled = false;
+          confirmBtn.style.opacity = '1';
+          confirmBtn.style.cursor = 'pointer';
+          confirmText.style.display = 'block';
+        }
+        
+        document.getElementById('deleteModal').style.display = 'block';
+      }
+      
+      function closeDeleteModal() {
+        document.getElementById('deleteModal').style.display = 'none';
+        currentDeleteId = null;
+      }
+      
+      function executeDelete() {
+        if (!currentDeleteId) return;
+        
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/partners/${currentDeleteId}/delete`;
+        document.body.appendChild(form);
+        form.submit();
+      }
+      
+      // Close modal when clicking outside
+      window.onclick = function(event) {
+        const editModal = document.getElementById('editModal');
+        const deleteModal = document.getElementById('deleteModal');
+        
+        if (event.target === editModal) {
+          closeEditModal();
+        }
+        if (event.target === deleteModal) {
+          closeDeleteModal();
+        }
+      }
+      
+      // Close modal with Escape key
+      document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+          closeEditModal();
+          closeDeleteModal();
+        }
+      });
+    </script>
   </body>
 </html>

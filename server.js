@@ -19,6 +19,10 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
+// Instance identity for diagnostics
+const STARTED_AT = new Date().toISOString();
+const INSTANCE_TAG = `${process.pid}-${Math.random().toString(36).slice(2, 8)}`;
+
 // Trust proxy for Nginx reverse proxy
 app.set('trust proxy', 1);
 
@@ -53,14 +57,7 @@ function getWIBTimestamp() {
   return formatWIBTimestamp();
 }
 
-// Global error logging to diagnose crashes
-process.on('uncaughtException', (err) => {
-  console.error('Uncaught Exception:', err && err.stack ? err.stack : err);
-});
-
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-});
+// (removed) duplicate early error handlers; consolidated below with logFatal
 
 // Rate limiting
 const authLimiter = rateLimit({
@@ -85,6 +82,13 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 // Static files
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Tag responses to identify instance in the browser devtools
+app.use((req, res, next) => {
+  res.setHeader('X-App-Instance', INSTANCE_TAG);
+  res.setHeader('X-App-Started-At', STARTED_AT);
+  next();
+});
 
 // Manifest route
 app.get('/manifest.json', (req, res) => {
@@ -983,21 +987,54 @@ app.post('/users/:id/reset-password', requireAuth, requireRole('admin'), (req, r
   });
 });
 
-app.get('/logout', (req, res) => {
-  // Produsen page: separated create protocol dashboard
-  app.get('/produsen', requireAuth, requireRole('admin', 'operator'), (req, res) => {
-    try {
-      res.render('create-protocol', {
-        user: req.user || { full_name: req.session.user },
-        provinces,
-        req
-      });
-    } catch (e) {
-      console.error('Error rendering produsen page:', e);
-      res.status(500).send('Internal server error');
-    }
-  });
+// Produsen page: create protocol page (must be top-level route)
+app.get('/produsen', requireAuth, requireRole('admin', 'operator'), (req, res) => {
+  try {
+    console.log('[Route] /produsen requested:', {
+      userId: req.user?.id || req.session?.userId || null,
+      ip: req.ip,
+      sessionUser: req.session?.user || null
+    });
+    res.render('create-protocol', {
+      user: req.user || { full_name: req.session.user },
+      provinces,
+      req
+    });
+  } catch (e) {
+    console.error('Error rendering produsen page:', e);
+    res.status(500).send('Internal server error');
+  }
+});
 
+// Helpful aliases & fallback redirects
+app.get(['/produsen/', '/buat-protokol', '/buat-protokol-baru'], (req, res) => {
+  console.log('[Alias Redirect] Redirecting to /produsen from', req.path);
+  res.redirect('/produsen');
+});
+
+console.log('[Init] /produsen route registered');
+
+// Debug route list endpoint (no auth to verify deployment really updated)
+app.get('/__debug/routes', (req, res) => {
+  try {
+    const getRoutes = [];
+    app._router.stack.forEach(layer => {
+      if (layer.route && layer.route.methods.get) {
+        getRoutes.push(layer.route.path);
+      }
+    });
+    res.json({ get: getRoutes });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Instance info endpoint
+app.get('/__whoami', (req, res) => {
+  res.json({ pid: process.pid, tag: INSTANCE_TAG, startedAt: STARTED_AT, port: PORT });
+});
+
+app.get('/logout', (req, res) => {
   req.session.destroy(() => res.redirect('/login'));
 });
 
@@ -1022,6 +1059,50 @@ app.get('/partners', requireAuth, requireRole('admin', 'operator'), (req, res) =
       });
     }
   );
+});
+
+// Mitra dashboard (separate from dropdown)
+app.get('/mitra', requireAuth, requireRole('admin', 'operator'), (req, res) => {
+  db.all(
+    `SELECT p.*, u.username as created_by_username,
+      (SELECT COUNT(*) FROM protocols WHERE partner_id = p.id) as protocol_count
+     FROM partners p
+     LEFT JOIN users u ON p.created_by = u.id
+     ORDER BY p.created_at DESC`,
+    (err, partners) => {
+      if (err) {
+        console.error('Error fetching mitra dashboard data:', err);
+        return res.status(500).send('Database error');
+      }
+      res.render('mitra-dashboard', {
+        user: req.session.user || req.user,
+        partners: partners || [],
+        provinces
+      });
+    }
+  );
+});
+
+// Aliases for mitra dashboard (avoid 404 due to trailing slash or alternate naming)
+app.get(['/mitra/', '/mitra-dashboard', '/dashboard-mitra'], (req, res) => {
+  console.log('[Alias Redirect] Redirecting to /mitra from', req.path);
+  res.redirect('/mitra');
+});
+
+// Session dump & request echo for diagnostics
+app.get('/__dump/session', (req, res) => {
+  res.json({
+    pid: process.pid,
+    tag: INSTANCE_TAG,
+    hasUser: !!req.user,
+    session: {
+      id: req.sessionID,
+      user: req.session?.user || null,
+      userId: req.session?.userId || null
+    },
+    headers: req.headers,
+    time: new Date().toISOString()
+  });
 });
 
 app.post('/partners', requireAuth, requireRole('admin', 'operator'), logActivity('create_partner', 'partner'), (req, res) => {
@@ -1067,10 +1148,71 @@ app.post('/partners', requireAuth, requireRole('admin', 'operator'), logActivity
   );
 });
 
+app.post('/partners/:id/edit', requireAuth, requireRole('admin', 'operator'), (req, res) => {
+  const partnerId = req.params.id;
+  const { name, type, code, province_code, phone, email, address } = req.body;
+  
+  // Validate input
+  if (!name || !type || !code || !province_code) {
+    return res.status(400).json({ success: false, error: 'Nama, jenis, kode, dan provinsi harus diisi' });
+  }
+  
+  if (!['klinik', 'puskesmas', 'rumah_sakit'].includes(type)) {
+    return res.status(400).json({ success: false, error: 'Jenis mitra tidak valid' });
+  }
+  
+  if (!validator.isAlphanumeric(code.replace(/[-_]/g, ''))) {
+    return res.status(400).json({ success: false, error: 'Kode harus berupa alfanumerik' });
+  }
+  
+  // Check if code is already used by another partner
+  db.get('SELECT id FROM partners WHERE code = ? AND id != ?', [code.toUpperCase(), partnerId], (err, existing) => {
+    if (err) {
+      console.error('Error checking code uniqueness:', err);
+      return res.status(500).json({ success: false, error: 'Database error' });
+    }
+    
+    if (existing) {
+      return res.status(400).json({ success: false, error: 'Kode mitra sudah digunakan oleh mitra lain' });
+    }
+    
+    db.run(
+      'UPDATE partners SET name = ?, type = ?, code = ?, province_code = ?, phone = ?, email = ?, address = ?, updated_at = ? WHERE id = ?',
+      [name, type, code.toUpperCase(), province_code, phone, email, address, getWIBTimestamp(), partnerId],
+      function(err) {
+        if (err) {
+          console.error('Error updating partner:', err);
+          return res.status(500).json({ success: false, error: 'Database error' });
+        }
+        
+        if (this.changes === 0) {
+          return res.status(404).json({ success: false, error: 'Mitra tidak ditemukan' });
+        }
+        
+        // Log activity
+        const ip = req.ip || req.connection.remoteAddress;
+        const userAgent = req.get('User-Agent');
+        const userId = req.session.userId !== undefined ? req.session.userId : (req.user ? req.user.id : 0);
+        
+        db.run(
+          `INSERT INTO activity_logs (user_id, action, target_type, target_id, details, ip_address, user_agent, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          [userId, 'update_partner', 'partner', partnerId, JSON.stringify({ name, type, code, province_code }), ip, userAgent, getWIBTimestamp()],
+          (logErr) => {
+            if (logErr) console.error('Activity log error:', logErr);
+          }
+        );
+        
+        res.json({ success: true, message: 'Mitra berhasil diperbarui' });
+      }
+    );
+  });
+});
+
 app.post('/partners/:id/toggle-status', requireAuth, requireRole('admin'), (req, res) => {
   const partnerId = req.params.id;
   
-  db.get('SELECT is_active FROM partners WHERE id = ?', [partnerId], (err, partner) => {
+  db.get('SELECT * FROM partners WHERE id = ?', [partnerId], (err, partner) => {
     if (err || !partner) {
       return res.status(404).send('Mitra tidak ditemukan');
     }
@@ -1085,6 +1227,22 @@ app.post('/partners/:id/toggle-status', requireAuth, requireRole('admin'), (req,
           console.error('Error updating partner status:', err);
           return res.status(500).send('Database error');
         }
+        
+        // Log activity
+        const ip = req.ip || req.connection.remoteAddress;
+        const userAgent = req.get('User-Agent');
+        const userId = req.session.userId !== undefined ? req.session.userId : (req.user ? req.user.id : 0);
+        const action = newStatus ? 'activate_partner' : 'deactivate_partner';
+        
+        db.run(
+          `INSERT INTO activity_logs (user_id, action, target_type, target_id, details, ip_address, user_agent, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          [userId, action, 'partner', partnerId, JSON.stringify({ name: partner.name, code: partner.code, new_status: newStatus ? 'active' : 'inactive' }), ip, userAgent, getWIBTimestamp()],
+          (logErr) => {
+            if (logErr) console.error('Activity log error:', logErr);
+          }
+        );
+        
         res.redirect('/partners');
       }
     );
@@ -1094,23 +1252,52 @@ app.post('/partners/:id/toggle-status', requireAuth, requireRole('admin'), (req,
 // Hard delete partner (only if no protocols are linked)
 app.post('/partners/:id/delete', requireAuth, requireRole('admin'), (req, res) => {
   const partnerId = req.params.id;
-  db.get('SELECT COUNT(*) as cnt FROM protocols WHERE partner_id = ?', [partnerId], (err, row) => {
-    if (err) {
-      console.error('Error checking partner protocols:', err);
-      return res.status(500).send('Database error');
+  
+  // First, get partner info for logging
+  db.get('SELECT * FROM partners WHERE id = ?', [partnerId], (err, partner) => {
+    if (err || !partner) {
+      console.error('Error fetching partner:', err);
+      return res.status(404).send('Mitra tidak ditemukan');
     }
-    if (row && row.cnt > 0) {
-      // Prevent deletion if used by protocols
-      return res.status(400).send('Mitra memiliki protokol terkait dan tidak dapat dihapus');
-    }
-    db.run('DELETE FROM stock_tracking WHERE partner_id = ?', [partnerId], (err1) => {
-      if (err1) console.error('Error deleting stock tracking for partner:', err1);
-      db.run('DELETE FROM partners WHERE id = ?', [partnerId], (err2) => {
-        if (err2) {
-          console.error('Error deleting partner:', err2);
-          return res.status(500).send('Database error');
-        }
-        res.redirect('/partners');
+    
+    // Check if partner has protocols
+    db.get('SELECT COUNT(*) as cnt FROM protocols WHERE partner_id = ?', [partnerId], (err, row) => {
+      if (err) {
+        console.error('Error checking partner protocols:', err);
+        return res.status(500).send('Database error');
+      }
+      if (row && row.cnt > 0) {
+        // Prevent deletion if used by protocols
+        return res.status(400).send('Mitra memiliki protokol terkait dan tidak dapat dihapus');
+      }
+      
+      // Delete stock tracking first
+      db.run('DELETE FROM stock_tracking WHERE partner_id = ?', [partnerId], (err1) => {
+        if (err1) console.error('Error deleting stock tracking for partner:', err1);
+        
+        // Delete the partner
+        db.run('DELETE FROM partners WHERE id = ?', [partnerId], (err2) => {
+          if (err2) {
+            console.error('Error deleting partner:', err2);
+            return res.status(500).send('Database error');
+          }
+          
+          // Log activity
+          const ip = req.ip || req.connection.remoteAddress;
+          const userAgent = req.get('User-Agent');
+          const userId = req.session.userId !== undefined ? req.session.userId : (req.user ? req.user.id : 0);
+          
+          db.run(
+            `INSERT INTO activity_logs (user_id, action, target_type, target_id, details, ip_address, user_agent, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [userId, 'delete_partner', 'partner', partnerId, JSON.stringify({ name: partner.name, code: partner.code, type: partner.type }), ip, userAgent, getWIBTimestamp()],
+            (logErr) => {
+              if (logErr) console.error('Activity log error:', logErr);
+            }
+          );
+          
+          res.redirect('/partners');
+        });
       });
     });
   });
@@ -1632,6 +1819,18 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log(`Server also available on http://127.0.0.1:${PORT}`);
   console.log(`Process ID: ${process.pid}`);
   console.log(`Access the app at: http://localhost:${PORT}`);
+  // List registered GET routes for debugging /produsen issue
+  try {
+    const routes = [];
+    app._router.stack.forEach(layer => {
+      if (layer.route && layer.route.methods.get) {
+        routes.push(layer.route.path);
+      }
+    });
+    console.log('[Route List][GET]', routes);
+  } catch (e) {
+    console.log('Could not enumerate routes:', e.message);
+  }
 });
 
 server.on('error', (err) => {
@@ -1642,8 +1841,42 @@ server.on('error', (err) => {
   }
 });
 
-// Optional: redirect agar tautan /dashboard tidak 404
-app.get('/dashboard', (req, res) => res.redirect('/'));
+// Extra diagnostics to trace unexpected exits
+server.on('close', () => {
+  logFatal('server_close', 'HTTP server closed');
+});
+
+process.on('beforeExit', (code) => {
+  logFatal('beforeExit', `code=${code}`);
+});
+
+process.on('exit', (code) => {
+  logFatal('process_exit', `code=${code}`);
+});
+
+process.on('SIGINT', () => {
+  logFatal('signal', 'SIGINT received');
+});
+
+process.on('SIGTERM', () => {
+  logFatal('signal', 'SIGTERM received');
+});
+
+// Normalize accidental query-style access (?mitra) or missing leading slash (before 404)
+app.use((req, res, next) => {
+  if (req.originalUrl === '/?mitra' || req.originalUrl === '/?produsen') {
+    const target = req.originalUrl.includes('mitra') ? '/mitra' : '/produsen';
+    console.log('[Normalize Redirect]', req.originalUrl, '->', target);
+    return res.redirect(target);
+  }
+  next();
+});
+
+// Final 404 logger to help trace missing routes in production (MUST BE LAST)
+app.use((req, res, next) => {
+  console.warn('[404]', req.method, req.originalUrl, 'from', req.ip, 'instance', INSTANCE_TAG);
+  res.status(404).send(`Not Found: ${req.originalUrl}`);
+});
 
 // Extra diagnostics for mysterious early exits
 process.on('exit', (code) => {
