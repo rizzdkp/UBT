@@ -437,7 +437,21 @@
           .protocol-cta__divider { margin: 14px auto; height: 2px; width: 85%; background: linear-gradient(90deg, #E91E63, #9C27B0); border: none; opacity: .55; }
           .protocol-cta__subtitle { margin: 8px 0 16px; color:#6b7280; font-size: 14px; }
           .protocol-cta__actions { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+          .protocol-cta__btn { text-decoration:none; }
+          .protocol-cta__btn--ghost { background:#ffffff; color:#7b1fa2; border:1px solid #e9a3c1; }
+          @media (max-width: 640px) { .protocol-cta__header { font-size: 18px; } .protocol-cta__divider { width: 100%; } }
         </style>
+        <div class="protocol-cta">
+          <div class="protocol-cta__header">
+            <span class="protocol-cta__icon">📦</span>
+            <span>Buat Protokol Baru</span>
+          </div>
+          <hr class="protocol-cta__divider" />
+          <p class="protocol-cta__subtitle">Generate kode QR untuk protokol tracking/pelaporan yang akan didistribusikan ke mitra</p>
+          <div class="protocol-cta__actions">
+            <a href="/produsen" class="btn-primary protocol-cta__btn">＋ Buat Protokol Baru</a>
+          </div>
+        </div>
       </section>
 
       <section>
