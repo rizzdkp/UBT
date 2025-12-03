@@ -396,7 +396,6 @@
           </div>
           <nav class="navigation-links">
             <a href="/dashboard">📊 Dasbor</a>
-            <a href="/produsen">🧾 Buat Protokol</a>
             <% if (user.role === 'admin') { %>
               <a href="/users">👥 Pengguna</a>
             <% } %>
@@ -416,7 +415,6 @@
         <div class="user">
           Masuk sebagai <strong><%= user.full_name || user %></strong> 
           <% if (user.role) { %>(<%= user.role %>)<% } %> — 
-          <a href="/produsen">Buat Protokol</a> |
           <a href="/scanner">Scanner</a> |
           <% if (user.role === 'admin' || user.role === 'operator') { %>
             <a href="/mitra">Mitra</a> |
@@ -439,21 +437,7 @@
           .protocol-cta__divider { margin: 14px auto; height: 2px; width: 85%; background: linear-gradient(90deg, #E91E63, #9C27B0); border: none; opacity: .55; }
           .protocol-cta__subtitle { margin: 8px 0 16px; color:#6b7280; font-size: 14px; }
           .protocol-cta__actions { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
-          .protocol-cta__btn { text-decoration:none; }
-          .protocol-cta__btn--ghost { background:#ffffff; color:#7b1fa2; border:1px solid #e9a3c1; }
-          @media (max-width: 640px) { .protocol-cta__header { font-size: 18px; } .protocol-cta__divider { width: 100%; } }
         </style>
-        <div class="protocol-cta">
-          <div class="protocol-cta__header">
-            <span class="protocol-cta__icon">📦</span>
-            <span>Buat Protokol Baru</span>
-          </div>
-          <hr class="protocol-cta__divider" />
-          <p class="protocol-cta__subtitle">Generate kode QR untuk protokol tracking/pelaporan yang akan didistribusikan ke mitra</p>
-          <div class="protocol-cta__actions">
-            <a href="/produsen" class="btn-primary protocol-cta__btn">＋ Buat Protokol Baru</a>
-          </div>
-        </div>
       </section>
 
       <section>
@@ -749,6 +733,67 @@
             .patient-modal { width: 96%; }
           }
         </style>
+        <style>
+          /* Edit Mode Styles */
+          .patient-modal__edit-toggle {
+            background: #9C27B0;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+          }
+          .patient-modal__edit-toggle:hover {
+            background: #7B1FA2;
+          }
+          .patient-modal__save-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            flex: 1;
+          }
+          .patient-modal__save-btn:hover {
+            background: #218838;
+          }
+          .patient-modal__cancel-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            flex: 1;
+          }
+          .patient-modal__cancel-btn:hover {
+            background: #545b62;
+          }
+          .patient-badge__input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+          }
+          .patient-badge__input:focus {
+            outline: none;
+            border-color: #9C27B0;
+            box-shadow: 0 0 0 2px rgba(156, 39, 176, 0.1);
+          }
+        </style>
         <% 
           const protocolsGrouped = {};
           (protocols || []).forEach(p => {
@@ -901,7 +946,12 @@
         <div class="patient-modal" role="dialog" aria-modal="true" aria-labelledby="patientModalTitle">
           <div class="patient-modal__header">
             <div id="patientModalTitle" class="patient-modal__title">🩺 Data Pasien OBGYN</div>
-            <button id="patientClose" class="patient-modal__close" aria-label="Tutup">✕</button>
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <button id="patientEdit" class="patient-modal__edit-toggle" aria-label="Edit Data" style="display: none;">
+                <span>✏️</span> Edit
+              </button>
+              <button id="patientClose" class="patient-modal__close" aria-label="Tutup">✕</button>
+            </div>
           </div>
           <div id="patientBody" class="patient-modal__body">
             <div id="p_name" class="patient-modal__name">-</div>
@@ -913,31 +963,103 @@
               <div id="p_gpa" class="patient-modal__gpa-grid"></div>
             </div>
             <div id="p_footer" class="patient-modal__footer"></div>
+            <div id="p_actions" class="patient-modal__footer" style="display: none; margin-top: 20px;">
+              <button id="patientSave" class="patient-modal__save-btn">💾 Simpan Perubahan</button>
+              <button id="patientCancel" class="patient-modal__cancel-btn">❌ Batal</button>
+            </div>
           </div>
         </div>`;
       document.body.appendChild(_patientModal);
 
-      function closePatientModal(){ _patientModal.style.display = 'none'; }
+      let _editMode = false;
+      let _currentPatientData = null;
+
+      function closePatientModal(){ 
+        _patientModal.style.display = 'none'; 
+        _editMode = false;
+        _currentPatientData = null;
+      }
+      
       document.addEventListener('click', (e)=>{
         if (e.target && (e.target.id === 'patientClose' || e.target.id === 'patientModal')) closePatientModal();
       });
 
-      function _badge(label, val){
+      function _badge(label, val, fieldName){
+        if (_editMode && fieldName) {
+          return `
+            <div class="patient-badge">
+              <div class="patient-badge__label">${label}</div>
+              <input type="text" class="patient-badge__input" data-field="${fieldName}" value="${val || ''}" />
+            </div>`;
+        }
         return `
-          <div class=\"patient-badge\">
-            <div class=\"patient-badge__label\">${label}</div>
-            <div class=\"patient-badge__value\">${val || '-'} </div>
+          <div class="patient-badge">
+            <div class="patient-badge__label">${label}</div>
+            <div class="patient-badge__value">${val || '-'}</div>
           </div>`;
+      }
+      
+      function toggleEditMode() {
+        _editMode = !_editMode;
+        if (_currentPatientData) {
+          renderPatientData(_currentPatientData);
+        }
+      }
+
+      function renderPatientData(data) {
+        _currentPatientData = data;
+        const editBtn = document.getElementById('patientEdit');
+        const actionsDiv = document.getElementById('p_actions');
+        
+        if (_editMode) {
+          document.getElementById('p_name').innerHTML = `<input type="text" class="patient-badge__input" data-field="patient_name" value="${data.patient_name || ''}" style="font-size: 20px; font-weight: 800; color: #e91e63;" />`;
+          editBtn.textContent = '👁️ Lihat';
+          actionsDiv.style.display = 'flex';
+        } else {
+          document.getElementById('p_name').textContent = data.patient_name || '-';
+          editBtn.innerHTML = '<span>✏️</span> Edit';
+          actionsDiv.style.display = 'none';
+        }
+        
+        document.getElementById('p_code').textContent = `Kode Protokol: ${data.protocol_code || '-'}`;
+        document.getElementById('p_grid').innerHTML = [
+          _badge('Nama Faskes', data.faskes_name, 'faskes_name'),
+          _badge('Pekerjaan', data.pekerjaan, 'pekerjaan'),
+          _badge('Status Pekerjaan', data.status_pekerjaan, 'status_pekerjaan'),
+          _badge('Status Pernikahan', data.status_pernikahan, 'status_pernikahan'),
+          _badge('Provinsi', data.provinsi, 'provinsi'),
+          _badge('Kabupaten/Kota', data.kabupaten, 'kabupaten'),
+          _badge('Alamat Lengkap', data.alamat, 'alamat'),
+          _badge('Tindakan Medis', data.tindakan, 'tindakan')
+        ].join('');
+        document.getElementById('p_gpa').innerHTML = [
+          _badge('Gravida (G)', data.gpa_gravida, 'gpa_gravida'),
+          _badge('Para (P)', data.gpa_para, 'gpa_para'),
+          _badge('Abortus (A)', data.gpa_abortus, 'gpa_abortus')
+        ].join('');
+        const when = (data.updated_at || data.created_at || '').toString().replace('T',' ').slice(0,19);
+        if (_editMode) {
+          document.getElementById('p_footer').innerHTML = _badge('Tenaga Kesehatan', data.tenaga_kesehatan, 'tenaga_kesehatan');
+        } else {
+          document.getElementById('p_footer').innerHTML = [
+            _badge('Tenaga Kesehatan', data.tenaga_kesehatan),
+            _badge('Data Dibuat', when)
+          ].join('');
+        }
       }
 
       async function openPatientModal(partnerId){
         if(!partnerId){ return; }
+        _editMode = false;
         _patientModal.style.display = 'flex';
         document.getElementById('p_name').textContent = 'Memuat...';
         document.getElementById('p_code').textContent = 'Kode Protokol: -';
         document.getElementById('p_grid').innerHTML = '';
         document.getElementById('p_gpa').innerHTML = '';
         document.getElementById('p_footer').innerHTML = '';
+        document.getElementById('p_actions').style.display = 'none';
+        document.getElementById('patientEdit').style.display = 'none';
+        
         try {
           const res = await fetch(`/api/patient/partner/${partnerId}`);
           const data = await res.json();
@@ -946,32 +1068,74 @@
             document.getElementById('p_footer').innerHTML = `<a href="/scanner" class="btn-primary" style="text-decoration:none;">📱 Isi Data via Scanner</a>`;
             return;
           }
-          document.getElementById('p_name').textContent = data.patient_name || '-';
-          document.getElementById('p_code').textContent = `Kode Protokol: ${data.protocol_code || '-'}`;
-          document.getElementById('p_grid').innerHTML = [
-            _badge('Nama Faskes', data.faskes_name),
-            _badge('Pekerjaan', data.pekerjaan),
-            _badge('Status Pekerjaan', data.status_pekerjaan),
-            _badge('Status Pernikahan', data.status_pernikahan),
-            _badge('Provinsi', data.provinsi),
-            _badge('Kabupaten/Kota', data.kabupaten),
-            _badge('Alamat Lengkap', data.alamat),
-            _badge('Tindakan Medis', data.tindakan)
-          ].join('');
-          document.getElementById('p_gpa').innerHTML = [
-            _badge('Gravida (G)', data.gpa_gravida),
-            _badge('Para (P)', data.gpa_para),
-            _badge('Abortus (A)', data.gpa_abortus)
-          ].join('');
-          const when = (data.updated_at || data.created_at || '').toString().replace('T',' ').slice(0,19);
-          document.getElementById('p_footer').innerHTML = [
-            _badge('Tenaga Kesehatan', data.tenaga_kesehatan),
-            _badge('Data Dibuat', when)
-          ].join('');
+          
+          document.getElementById('patientEdit').style.display = 'flex';
+          renderPatientData(data);
         } catch (e){
           document.getElementById('p_name').textContent = 'Gagal memuat data';
         }
       }
+      
+      // Edit button handler
+      document.addEventListener('click', (e) => {
+        if (e.target && (e.target.id === 'patientEdit' || e.target.parentElement?.id === 'patientEdit')) {
+          toggleEditMode();
+        }
+      });
+      
+      // Save button handler
+      document.addEventListener('click', async (e) => {
+        if (e.target && e.target.id === 'patientSave') {
+          if (!_currentPatientData || !_currentPatientData.id) {
+            showToast('Data pasien tidak ditemukan', 'error');
+            return;
+          }
+          
+          const inputs = document.querySelectorAll('.patient-badge__input');
+          const updateData = {};
+          inputs.forEach(input => {
+            const field = input.dataset.field;
+            if (field) {
+              updateData[field] = input.value;
+            }
+          });
+          
+          try {
+            const res = await fetch(`/api/patient/${_currentPatientData.id}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(updateData)
+            });
+            
+            const result = await res.json();
+            if (res.ok) {
+              showToast('Data pasien berhasil diperbarui!', 'success');
+              _editMode = false;
+              _currentPatientData = { ..._currentPatientData, ...updateData };
+              renderPatientData(_currentPatientData);
+              
+              setTimeout(() => {
+                window.location.reload();
+              }, 1500);
+            } else {
+              showToast(result.error || 'Gagal memperbarui data', 'error');
+            }
+          } catch (error) {
+            console.error('Error updating patient:', error);
+            showToast('Terjadi kesalahan saat memperbarui data', 'error');
+          }
+        }
+      });
+      
+      // Cancel button handler
+      document.addEventListener('click', (e) => {
+        if (e.target && e.target.id === 'patientCancel') {
+          _editMode = false;
+          if (_currentPatientData) {
+            renderPatientData(_currentPatientData);
+          }
+        }
+      });
       // Close with Escape
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') closePatientModal();

@@ -1425,6 +1425,90 @@ app.get('/api/patient/partner/:partnerId', requireAuth, (req, res) => {
   );
 });
 
+// API: update patient data
+app.put('/api/patient/:id', requireAuth, (req, res) => {
+  const patientId = req.params.id;
+  const {
+    patient_name,
+    faskes_name,
+    pekerjaan,
+    status_pekerjaan,
+    status_pernikahan,
+    provinsi,
+    kabupaten,
+    alamat,
+    tindakan,
+    gpa_gravida,
+    gpa_para,
+    gpa_abortus,
+    tenaga_kesehatan
+  } = req.body;
+
+  // Validate required fields
+  if (!patient_name || !faskes_name) {
+    return res.status(400).json({ error: 'Nama pasien dan nama faskes wajib diisi' });
+  }
+
+  const updatedAt = getWIBTimestamp();
+
+  db.run(
+    `UPDATE patients SET
+      patient_name = ?,
+      faskes_name = ?,
+      pekerjaan = ?,
+      status_pekerjaan = ?,
+      status_pernikahan = ?,
+      provinsi = ?,
+      kabupaten = ?,
+      alamat = ?,
+      tindakan = ?,
+      gpa_gravida = ?,
+      gpa_para = ?,
+      gpa_abortus = ?,
+      tenaga_kesehatan = ?,
+      updated_at = ?
+    WHERE id = ?`,
+    [
+      patient_name,
+      faskes_name,
+      pekerjaan,
+      status_pekerjaan,
+      status_pernikahan,
+      provinsi,
+      kabupaten,
+      alamat,
+      tindakan,
+      gpa_gravida,
+      gpa_para,
+      gpa_abortus,
+      tenaga_kesehatan,
+      updatedAt,
+      patientId
+    ],
+    function(err) {
+      if (err) {
+        console.error('Error updating patient:', err);
+        return res.status(500).json({ error: 'Database error' });
+      }
+      if (this.changes === 0) {
+        return res.status(404).json({ error: 'Data pasien tidak ditemukan' });
+      }
+      
+      // Emit real-time update
+      io.emit('patient_updated', {
+        patientId: patientId,
+        patient_name: patient_name
+      });
+      
+      res.json({ 
+        success: true, 
+        message: 'Data pasien berhasil diperbarui',
+        patientId: patientId 
+      });
+    }
+  );
+});
+
 // Create protocol form (admin and operator only)
 app.post('/protocols', requireAuth, requireRole('admin', 'operator'), logActivity('create_protocol'), (req, res) => {
   const { province, partner_id, quantity } = req.body;
