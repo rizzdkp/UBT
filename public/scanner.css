@@ -5,16 +5,18 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     margin: 0;
     padding: 0;
-    background: linear-gradient(135deg, #E91E63 0%, #9C27B0 100%);
+    background: #4a2c5c;
     min-height: 100vh;
     color: #2d3748;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .scanner-container {
     max-width: 500px;
-    margin: 0 auto;
+    width: 100%;
     padding: 20px;
-    min-height: 100vh;
 }
 
 .scanner-header {
@@ -248,6 +250,60 @@ body {
     background: #cbd5e0;
 }
 
+/* Dark Mode Button Hierarchy */
+@media (max-width: 768px) {
+    /* Primary Action Button - Start Scan */
+    .btn-scan {
+        background: var(--accent-primary, #E91E63) !important;
+        color: white !important;
+        border: none;
+        box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3);
+    }
+    
+    .btn-scan:hover, .btn-scan:active {
+        background: #C2185B !important;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(233, 30, 99, 0.4);
+    }
+    
+    /* Stop Button */
+    .btn-stop {
+        background: var(--bg-elevated, #383848) !important;
+        color: var(--text-primary, #E5E7EB) !important;
+        border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.15));
+    }
+    
+    .btn-stop:hover, .btn-stop:active {
+        background: rgba(56, 56, 72, 0.8) !important;
+    }
+    
+    /* Secondary Button - Pick Image */
+    .btn-secondary {
+        background: var(--bg-elevated, #383848) !important;
+        color: var(--text-primary, #E5E7EB) !important;
+        border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.15)) !important;
+    }
+    
+    .btn-secondary:hover, .btn-secondary:active {
+        background: rgba(56, 56, 72, 0.8) !important;
+        border-color: var(--accent-primary, #E91E63) !important;
+    }
+    
+    /* Submit Button */
+    .btn-submit {
+        background: var(--accent-primary, #E91E63) !important;
+        color: white !important;
+        border: none;
+        box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3);
+    }
+    
+    .btn-submit:hover, .btn-submit:active {
+        background: #C2185B !important;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(233, 30, 99, 0.4);
+    }
+}
+
 .loading-overlay {
     position: fixed;
     top: 0;
@@ -278,101 +334,58 @@ body {
     100% { transform: rotate(360deg); }
 }
 
-/* Toast Notification - Centered Style */
+/* Toast Notification - Top Right Style */
 .toast-container {
     position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    top: 20px;
+    right: 20px;
     z-index: 10000;
-    max-width: 500px;
-    width: 90%;
+    max-width: 400px;
+    width: auto;
     pointer-events: none;
 }
 
 .toast {
     position: relative;
-    background: white;
-    border-radius: 16px;
-    padding: 20px 24px;
+    background: linear-gradient(135deg, #E91E63 0%, #9C27B0 100%);
+    color: white;
+    border-radius: 12px;
+    padding: 16px 20px;
     margin-bottom: 12px;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25), 0 10px 20px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 10px 30px rgba(233, 30, 99, 0.4), 0 4px 10px rgba(156, 39, 176, 0.3);
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 12px;
     opacity: 0;
-    transform: scale(0.8);
-    animation: toastPopIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    transform: translateX(100px);
+    animation: toastSlideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
     pointer-events: auto;
-    border-left: 5px solid;
     backdrop-filter: blur(10px);
+    min-width: 300px;
 }
 
 .toast:hover {
-    transform: scale(1.02);
-    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3), 0 12px 25px rgba(0, 0, 0, 0.2);
+    transform: translateX(0) scale(1.02);
+    box-shadow: 0 15px 40px rgba(233, 30, 99, 0.5), 0 6px 15px rgba(156, 39, 176, 0.4);
 }
 
 .toast.hiding {
-    animation: toastPopOut 0.3s ease-in forwards;
-}
-
-/* Toast Types */
-.toast.success {
-    border-left-color: #10b981;
-    background: linear-gradient(135deg, #ecfdf5 0%, #ffffff 100%);
-}
-
-.toast.error {
-    border-left-color: #ef4444;
-    background: linear-gradient(135deg, #fef2f2 0%, #ffffff 100%);
-}
-
-.toast.warning {
-    border-left-color: #f59e0b;
-    background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%);
-}
-
-.toast.info {
-    border-left-color: #E91E63;
-    background: linear-gradient(135deg, #FCE4EC 0%, #ffffff 100%);
+    animation: toastSlideOut 0.3s ease-in forwards;
 }
 
 /* Toast Icon */
 .toast-icon {
     flex-shrink: 0;
-    width: 48px;
-    height: 48px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
+    font-size: 20px;
     font-weight: bold;
-}
-
-.toast.success .toast-icon {
-    background: linear-gradient(135deg, #10b981, #059669);
+    background: rgba(255, 255, 255, 0.2);
     color: white;
-    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
-}
-
-.toast.error .toast-icon {
-    background: linear-gradient(135deg, #ef4444, #dc2626);
-    color: white;
-    box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
-}
-
-.toast.warning .toast-icon {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
-    color: white;
-    box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4);
-}
-
-.toast.info .toast-icon {
-    background: linear-gradient(135deg, #E91E63, #C2185B);
-    color: white;
-    box-shadow: 0 6px 16px rgba(233, 30, 99, 0.4);
 }
 
 /* Toast Content */
@@ -382,33 +395,34 @@ body {
 }
 
 .toast-message {
-    color: #1f2937;
-    font-size: 15px;
-    font-weight: 600;
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
     line-height: 1.5;
     margin: 0;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 /* Toast Animations */
-@keyframes toastPopIn {
+@keyframes toastSlideIn {
     0% {
         opacity: 0;
-        transform: scale(0.8) translateY(-20px);
+        transform: translateX(400px);
     }
     100% {
         opacity: 1;
-        transform: scale(1) translateY(0);
+        transform: translateX(0);
     }
 }
 
-@keyframes toastPopOut {
+@keyframes toastSlideOut {
     0% {
         opacity: 1;
-        transform: scale(1);
+        transform: translateX(0);
     }
     100% {
         opacity: 0;
-        transform: scale(0.8);
+        transform: translateX(400px);
     }
 }
 

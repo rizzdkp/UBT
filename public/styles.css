@@ -297,7 +297,7 @@
 * { box-sizing: border-box; }
 body { 
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
-  background: var(--gradient-primary);
+  background: #4a2c5c;
   color: #2d3748;
   margin: 0;
   padding: 20px;

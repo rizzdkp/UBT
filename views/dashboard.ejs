@@ -7,7 +7,7 @@
     
     <!-- PWA Meta Tags -->
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#E91E63">
+    <meta name="theme-color" content="#D63384">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Protokol Barcode">
@@ -15,6 +15,7 @@
     
     <link rel="stylesheet" href="/styles.css" />
     <link rel="stylesheet" href="/mobile-responsive.css" />
+    <link rel="stylesheet" href="/mobile-dark.css" />
     <link rel="stylesheet" href="/toast.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -80,34 +81,40 @@
       }
       
       .btn-primary {
-        background: #007bff;
+        background: var(--brand-primary, #D63384);
         color: white;
         padding: 8px 16px;
         border: none;
-        border-radius: 4px;
+        border-radius: var(--radius-md, 10px);
         cursor: pointer;
         font-size: 14px;
+        transition: all 0.2s ease;
       }
       
       .btn-primary:hover {
-        background: #0056b3;
+        background: #C12874;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(214, 51, 132, 0.3);
       }
       
       #createProtocolBtn {
-        background: #28a745;
+        background: var(--brand-primary, #D63384);
         color: white;
         padding: 12px 24px;
         border: none;
-        border-radius: 6px;
+        border-radius: var(--radius-md, 10px);
         font-size: 16px;
         font-weight: bold;
         cursor: pointer;
         margin-top: 20px;
         width: 100%;
+        transition: all 0.2s ease;
       }
       
       #createProtocolBtn:hover:not(:disabled) {
-        background: #218838;
+        background: #C12874;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(214, 51, 132, 0.4);
       }
       
       #createProtocolBtn:disabled {
@@ -118,20 +125,23 @@
       #openScannerBtn {
         display: inline-block;
         text-align: center;
-        background: linear-gradient(135deg, #9C27B0, #E91E63);
+        background: var(--brand-secondary, #9B7EBD);
         color: #fff;
         padding: 12px 24px;
         border: none;
-        border-radius: 6px;
+        border-radius: var(--radius-md, 10px);
         font-size: 16px;
         font-weight: bold;
         cursor: pointer;
         margin-top: 12px;
         width: 100%;
         text-decoration: none;
+        transition: all 0.2s ease;
       }
       #openScannerBtn:hover {
-        filter: brightness(0.95);
+        background: #8A6DAC;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(155, 126, 189, 0.4);
       }
       
       .metrics-grid {
@@ -583,7 +593,9 @@
         <!-- Tabel Kinerja Mitra dengan STATUS BREAKDOWN dan NAMA PASIEN -->
         <div class="analytics-section">
           <h3>💎 Kinerja & Stok Mitra</h3>
-          <div class="partner-performance-table">
+          
+          <!-- Desktop Table View (Hidden on Mobile) -->
+          <div class="partner-performance-table desktop-only" style="display: none;">
             <table class="performance-table">
               <thead>
                 <tr>
@@ -601,7 +613,6 @@
               <tbody>
                 <% if (analytics.partnerPerformance && analytics.partnerPerformance.length > 0) { %>
                   <% analytics.partnerPerformance.forEach(function(partner, index){ 
-                    // Hitung status breakdown
                     const createdCount = partner.created_count || 0;
                     const deliveredCount = partner.delivered_count || 0;
                     const terpakaiCount = partner.terpakai_count || 0;
@@ -639,22 +650,15 @@
                     </td>
                     <td><%= partner.last_activity || '-' %></td>
                     <td>
-                      <!-- RINCIAN STATUS - sekarang di posisi terakhir -->
                       <div class="status-breakdown">
                         <% if (createdCount > 0) { %>
-                          <span class="status-breakdown-badge created">
-                            Dibuat: <%= createdCount %>
-                          </span>
+                          <span class="status-breakdown-badge created">Dibuat: <%= createdCount %></span>
                         <% } %>
                         <% if (deliveredCount > 0) { %>
-                          <span class="status-breakdown-badge delivered">
-                            Terkirim: <%= deliveredCount %>
-                          </span>
+                          <span class="status-breakdown-badge delivered">Terkirim: <%= deliveredCount %></span>
                         <% } %>
                         <% if (terpakaiCount > 0) { %>
-                          <span class="status-breakdown-badge terpakai">
-                            Terpakai: <%= terpakaiCount %>
-                          </span>
+                          <span class="status-breakdown-badge terpakai">Terpakai: <%= terpakaiCount %></span>
                         <% } %>
                         <% if (createdCount === 0 && deliveredCount === 0 && terpakaiCount === 0) { %>
                           <span style="color: #9ca3af; font-size: 12px;">-</span>
@@ -662,7 +666,6 @@
                       </div>
                     </td>
                   </tr>
-                  
                   <% }) %>
                 <% } else { %>
                   <tr>
@@ -672,7 +675,79 @@
               </tbody>
             </table>
           </div>
+
+          <!-- Mobile Card List View -->
+          <div class="card-list mobile-only">
+            <% if (analytics.partnerPerformance && analytics.partnerPerformance.length > 0) { %>
+              <% analytics.partnerPerformance.forEach(function(partner, index){ 
+                const createdCount = partner.created_count || 0;
+                const deliveredCount = partner.delivered_count || 0;
+                const terpakaiCount = partner.terpakai_count || 0;
+                const partnerId = partner.partner_id || partner.id || '';
+              %>
+              <div class="data-card" onclick="openPatientModal('<%= partnerId %>')">
+                <div class="data-card-header">
+                  <div>
+                    <div class="data-card-title"><%= partner.partner_name %></div>
+                    <div class="data-card-subtitle"><%= partner.partner_code %></div>
+                    <% if (partner.patient_name) { %>
+                      <div style="margin-top: 8px; font-size: 13px; color: var(--text-secondary);">
+                        👤 <%= partner.patient_name %>
+                      </div>
+                    <% } %>
+                  </div>
+                </div>
+                
+                <div class="data-card-meta">
+                  <span class="data-card-badge badge-type">
+                    <%= partner.partner_type.replace('_', ' ').toUpperCase() %>
+                  </span>
+                  <span class="data-card-badge badge-province">
+                    <%= partner.province_code %>
+                  </span>
+                  <span class="data-card-badge" style="background: rgba(233, 30, 99, 0.15); color: #E91E63; border: 1px solid rgba(233, 30, 99, 0.3);">
+                    <%= partner.total_protocols %> Protokol
+                  </span>
+                  <% if (partner.usage_rate && partner.usage_rate > 0) { %>
+                    <span class="data-card-badge badge-status">
+                      <%= partner.usage_rate %>% Digunakan
+                    </span>
+                  <% } %>
+                </div>
+
+                <% if (createdCount > 0 || deliveredCount > 0 || terpakaiCount > 0) { %>
+                  <div style="display: flex; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-subtle);">
+                    <% if (createdCount > 0) { %>
+                      <span style="font-size: 12px; color: #3B82F6;">Dibuat: <%= createdCount %></span>
+                    <% } %>
+                    <% if (deliveredCount > 0) { %>
+                      <span style="font-size: 12px; color: #F59E0B;">Terkirim: <%= deliveredCount %></span>
+                    <% } %>
+                    <% if (terpakaiCount > 0) { %>
+                      <span style="font-size: 12px; color: #10B981;">Terpakai: <%= terpakaiCount %></span>
+                    <% } %>
+                  </div>
+                <% } %>
+              </div>
+              <% }) %>
+            <% } else { %>
+              <div class="no-data" style="padding: 40px; text-align: center; border-radius: 12px;">
+                Tidak ada data kinerja mitra
+              </div>
+            <% } %>
+          </div>
         </div>
+        
+        <style>
+          @media (min-width: 769px) {
+            .desktop-only { display: block !important; }
+            .mobile-only { display: none !important; }
+          }
+          @media (max-width: 768px) {
+            .desktop-only { display: none !important; }
+            .mobile-only { display: block !important; }
+          }
+        </style>
 
         <!-- Grafik Interaktif -->
         <div class="analytics-charts">
@@ -715,9 +790,9 @@
           .protocols-table .actions-cell button:hover { background:#1d4ed8; }
           .protocols-table .group-header td { background:#f3f4f6; font-weight:600; }
           .protocols-table .status-badge { padding:4px 10px; border-radius:12px; font-size:11px; font-weight:600; text-transform: capitalize; }
-          .protocols-table .status-badge.status-created { background: #dbeafe; color: #1e40af; }
-          .protocols-table .status-badge.status-delivered { background: #fef3c7; color: #92400e; }
-          .protocols-table .status-badge.status-terpakai { background: #d1fae5; color: #065f46; }
+          .protocols-table .status-badge.status-created { background: rgba(99, 102, 241, 0.15); color: #6366F1; border: 1px solid rgba(99, 102, 241, 0.3); }
+          .protocols-table .status-badge.status-delivered { background: rgba(245, 158, 11, 0.15); color: #F59E0B; border: 1px solid rgba(245, 158, 11, 0.3); }
+          .protocols-table .status-badge.status-terpakai { background: rgba(16, 185, 129, 0.15); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.3); }
           @media (max-width: 768px) {
             .protocols-table { min-width: 800px; }
             .protocols-table .barcode-cell img { max-width: 180px; }
@@ -827,7 +902,8 @@
         <% if (groups.length === 0) { %>
           <div class="no-data">Belum ada protokol untuk periode ini.</div>
         <% } else { %>
-          <div class="protocols-wrapper">
+          <!-- Desktop Table View -->
+          <div class="protocols-wrapper desktop-only" style="display: none;">
           <table class="protocols-table">
             <thead>
               <tr>
@@ -887,7 +963,98 @@
             </tbody>
           </table>
           </div>
+
+          <!-- Mobile Card List View -->
+          <div class="card-list mobile-only">
+            <% groups.forEach(function(g){ 
+              const statusText = {
+                'created': 'Dibuat',
+                'delivered': 'Terkirim',
+                'terpakai': 'Terpakai'
+              };
+            %>
+              <!-- Partner Group Header -->
+              <div style="background: var(--bg-elevated); padding: 16px; border-radius: var(--radius-md); margin-bottom: 12px; border-left: 3px solid var(--accent-primary);">
+                <div style="font-weight: 600; font-size: 15px; color: var(--text-primary); margin-bottom: 4px;">
+                  <%= g.partner_name %>
+                </div>
+                <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 8px;">
+                  <% if (g.partner_code) { %>
+                    <span style="font-size: 12px; color: var(--text-secondary); font-family: monospace; background: var(--bg-card); padding: 2px 8px; border-radius: 4px;">
+                      <%= g.partner_code %>
+                    </span>
+                  <% } %>
+                  <% if (g.partner_type) { %>
+                    <span class="data-card-badge badge-type">
+                      <%= g.partner_type.replace('_',' ').toUpperCase() %>
+                    </span>
+                  <% } %>
+                </div>
+              </div>
+
+              <!-- Protocol Cards -->
+              <% g.items.forEach(function(p){ %>
+                <div class="data-card" style="margin-bottom: 16px;">
+                  <div class="data-card-header">
+                    <div style="flex: 1;">
+                      <div class="data-card-title">
+                        <%= p.code %>
+                        <span style="margin-left: 8px; font-size: 13px; font-weight: 400; color: var(--text-tertiary);">#<%= p.id %></span>
+                      </div>
+                      <div class="data-card-subtitle">
+                        <%= new Date(p.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) %>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="data-card-meta">
+                    <span class="data-card-badge badge-province">
+                      <%= p.province_code %>
+                    </span>
+                    <span class="data-card-badge badge-status-<%= p.status %>">
+                      <%= statusText[p.status] || p.status %>
+                    </span>
+                  </div>
+
+                  <!-- QR Code Section -->
+                  <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-subtle); text-align: center;">
+                    <img src="/barcode/<%= p.code %>.png" alt="QR <%= p.code %>" style="max-width: 200px; height: auto; border-radius: 8px; background: white; padding: 8px;" />
+                    <br>
+                    <a href="/download/barcode/<%= p.code %>.png" download="qrcode-<%= p.code %>.png" 
+                       style="display: inline-block; margin-top: 12px; padding: 8px 16px; background: var(--bg-elevated); color: var(--text-primary); text-decoration: none; border-radius: 8px; font-size: 13px; font-weight: 500;">
+                      ⬇️ Unduh QR
+                    </a>
+                  </div>
+
+                  <!-- Status Update Form -->
+                  <form method="post" action="/protocols/<%= p.id %>/status" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-subtle);">
+                    <label style="display: block; font-size: 13px; color: var(--text-secondary); margin-bottom: 8px; font-weight: 500;">
+                      Perbarui Status
+                    </label>
+                    <div style="display: flex; gap: 8px;">
+                      <select name="status" 
+                              style="flex: 1; padding: 10px 12px; background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); font-size: 14px;">
+                        <option value="created" <%= p.status === 'created' ? 'selected' : '' %>>Dibuat</option>
+                        <option value="delivered" <%= p.status === 'delivered' ? 'selected' : '' %>>Terkirim</option>
+                        <option value="terpakai" <%= p.status === 'terpakai' ? 'selected' : '' %>>Terpakai</option>
+                      </select>
+                      <button type="submit" 
+                              style="padding: 10px 20px; background: var(--accent-primary); color: white; border: none; border-radius: var(--radius-sm); font-weight: 600; font-size: 14px; cursor: pointer;">
+                        Perbarui
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              <% }) %>
+            <% }) %>
+          </div>
         <% } %>
+
+        <style>
+          .badge-status-created { background: rgba(99, 102, 241, 0.15); color: #6366F1; border: 1px solid rgba(99, 102, 241, 0.3); }
+          .badge-status-delivered { background: rgba(245, 158, 11, 0.15); color: #F59E0B; border: 1px solid rgba(245, 158, 11, 0.3); }
+          .badge-status-terpakai { background: rgba(16, 185, 129, 0.15); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.3); }
+        </style>
       </section>
     </div>
     
@@ -1280,37 +1447,103 @@
       });
 
       function initializeCharts() {
+        // Get current theme
+        const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+        const isDark = currentTheme === 'dark';
+        
+        // OBGYN Theme-aware colors
+        const themeColors = {
+          text: isDark ? '#F3E8F7' : '#2D1B3D',
+          grid: isDark ? 'rgba(200, 181, 214, 0.15)' : 'rgba(155, 126, 189, 0.15)',
+          border: isDark ? 'rgba(200, 181, 214, 0.2)' : '#E1D5E7',
+          tooltipBg: isDark ? 'rgba(45, 27, 61, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+          chartBg: isDark ? '#2D1B3D' : '#FFFFFF'
+        };
+
+        const commonOptions = {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: {
+              labels: {
+                color: themeColors.text,
+                font: { size: 12, weight: '500' },
+                padding: 15
+              }
+            },
+            tooltip: {
+              backgroundColor: themeColors.tooltipBg,
+              titleColor: themeColors.text,
+              bodyColor: themeColors.text,
+              borderColor: '#D63384',
+              borderWidth: 1,
+              padding: 12,
+              cornerRadius: 8
+            }
+          },
+          scales: {
+            x: {
+              ticks: { color: themeColors.text, font: { size: 11 } },
+              grid: { color: themeColors.grid, drawBorder: false }
+            },
+            y: {
+              ticks: { color: themeColors.text, font: { size: 11 } },
+              grid: { color: themeColors.grid, drawBorder: false }
+            }
+          }
+        };
+
         const dailyTrendsCtx = document.getElementById('dailyTrendsChart').getContext('2d');
         const dailyTrendsData = <%- JSON.stringify(analytics.dailyTrends) %>;
         
         new Chart(dailyTrendsCtx, {
           type: 'line',
           data: {
-            labels: dailyTrendsData.map(d => new Date(d.date).toLocaleDateString('id-ID')),
+            labels: dailyTrendsData.map(d => {
+              const date = new Date(d.date);
+              return `${date.getDate()} ${date.toLocaleDateString('id-ID', { month: 'short' })}`;
+            }),
             datasets: [{
               label: 'Dibuat',
               data: dailyTrendsData.map(d => d.created),
-              borderColor: '#E91E63',
-              backgroundColor: 'rgba(233, 30, 99, 0.12)',
-              tension: 0.4
+              borderColor: '#6366F1',
+              backgroundColor: 'rgba(99, 102, 241, 0.15)',
+              borderWidth: 2.5,
+              tension: 0.4,
+              pointRadius: 4,
+              pointBackgroundColor: '#6366F1',
+              pointBorderColor: themeColors.chartBg,
+              pointBorderWidth: 2
             }, {
               label: 'Terkirim',
               data: dailyTrendsData.map(d => d.delivered),
-              borderColor: '#9C27B0',
-              backgroundColor: 'rgba(156, 39, 176, 0.12)',
-              tension: 0.4
+              borderColor: '#F59E0B',
+              backgroundColor: 'rgba(245, 158, 11, 0.15)',
+              borderWidth: 2.5,
+              tension: 0.4,
+              pointRadius: 4,
+              pointBackgroundColor: '#F59E0B',
+              pointBorderColor: themeColors.chartBg,
+              pointBorderWidth: 2
             }, {
               label: 'Terpakai',
               data: dailyTrendsData.map(d => d.terpakai),
-              borderColor: '#ed8936',
-              backgroundColor: 'rgba(237, 137, 54, 0.1)',
-              tension: 0.4
+              borderColor: '#10B981',
+              backgroundColor: 'rgba(16, 185, 129, 0.15)',
+              borderWidth: 2.5,
+              tension: 0.4,
+              pointRadius: 4,
+              pointBackgroundColor: '#10B981',
+              pointBorderColor: themeColors.chartBg,
+              pointBorderWidth: 2
             }]
           },
           options: {
-            responsive: true,
-            plugins: { legend: { position: 'top' } },
-            scales: { y: { beginAtZero: true } }
+            ...commonOptions,
+            plugins: {
+              ...commonOptions.plugins,
+              legend: { ...commonOptions.plugins.legend, position: 'top' }
+            }
           }
         });
 
@@ -1327,15 +1560,17 @@
                 const hour = hourlyData.find(h => parseInt(h.hour) === i);
                 return hour ? hour.count : 0;
               }),
-              backgroundColor: 'rgba(156, 39, 176, 0.25)',
-              borderColor: '#9C27B0',
-              borderWidth: 1
+              backgroundColor: 'rgba(214, 51, 132, 0.25)',
+              borderColor: '#D63384',
+              borderWidth: 1.5
             }]
           },
           options: {
-            responsive: true,
-            plugins: { legend: { display: false } },
-            scales: { y: { beginAtZero: true } }
+            ...commonOptions,
+            plugins: {
+              ...commonOptions.plugins,
+              legend: { display: false }
+            }
           }
         });
 
@@ -1347,14 +1582,32 @@
             labels: ['Dibuat', 'Terkirim', 'Terpakai'],
             datasets: [{
               data: [<%= stats.created %>, <%= stats.delivered %>, <%= stats.terpakai %>],
-              backgroundColor: ['#E91E63', '#9C27B0', '#ed8936'],
-              borderWidth: 2,
-              borderColor: '#fff'
+              backgroundColor: ['#6366F1', '#F59E0B', '#10B981'],
+              borderWidth: 3,
+              borderColor: themeColors.chartBg
             }]
           },
           options: {
             responsive: true,
-            plugins: { legend: { position: 'bottom' } }
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: {
+                  color: themeColors.text,
+                  font: { size: 12, weight: '500' },
+                  padding: 15
+                }
+              },
+              tooltip: {
+                backgroundColor: themeColors.tooltipBg,
+                titleColor: themeColors.text,
+                bodyColor: themeColors.text,
+                borderColor: '#D63384',
+                borderWidth: 1,
+                padding: 12,
+                cornerRadius: 8
+              }
+            }
           }
         });
 
@@ -1368,21 +1621,45 @@
             datasets: [{
               label: 'Jumlah Protokol',
               data: provinceData.map(p => p.count),
-              backgroundColor: ['#E91E63', '#9C27B0', '#F06292', '#BA68C8', '#F48FB1'],
-              borderWidth: 1
+              backgroundColor: ['#D63384', '#9B7EBD', '#E685B5', '#6366F1', '#F59E0B'],
+              borderWidth: 0
             }]
           },
           options: {
-            responsive: true,
+            ...commonOptions,
             indexAxis: 'y',
-            plugins: { legend: { display: false } },
-            scales: { x: { beginAtZero: true } }
+            plugins: {
+              ...commonOptions.plugins,
+              legend: { display: false }
+            },
+            scales: {
+              x: {
+                ticks: { color: themeColors.text, font: { size: 11 } },
+                grid: { color: themeColors.grid, drawBorder: false },
+                beginAtZero: true
+              },
+              y: {
+                ticks: { color: themeColors.text, font: { size: 11 } },
+                grid: { display: false }
+              }
+            }
           }
         });
       }
 
+      // Reinitialize charts when theme changes
+      window.addEventListener('themechange', function() {
+        // Destroy existing charts
+        Chart.helpers.each(Chart.instances, function(instance) {
+          instance.destroy();
+        });
+        // Reinitialize with new theme
+        initializeCharts();
+      });
+
       /* setupPartnerDropdown removed; see /mitra dashboard */
 
+      // Mobile Navigation with Smooth Transitions
       const mobileMenuToggle = document.getElementById('mobileMenuToggle');
       const mobileNav = document.getElementById('mobileNav');
       const mobileNavBackdrop = document.getElementById('mobileNavBackdrop');
@@ -1412,6 +1689,94 @@
           });
         });
       }
+
+      // Enhanced Mobile UX: Smooth Scroll & Page Transitions
+      document.addEventListener('DOMContentLoaded', function() {
+        // Add page transition class
+        document.body.classList.add('page-transition');
+
+        // Intersection Observer for section animations
+        if ('IntersectionObserver' in window) {
+          const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+              if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+              }
+            });
+          }, {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+          });
+
+          document.querySelectorAll('section').forEach(section => {
+            section.style.opacity = '0';
+            section.style.transform = 'translateY(20px)';
+            section.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
+            observer.observe(section);
+          });
+        }
+
+        // Haptic feedback for button clicks (if supported)
+        document.querySelectorAll('button, .btn').forEach(button => {
+          button.addEventListener('click', function() {
+            if (navigator.vibrate) {
+              navigator.vibrate(10); // Very light haptic feedback
+            }
+          });
+        });
+
+        // Add ripple effect to buttons
+        document.querySelectorAll('button, .btn').forEach(button => {
+          button.addEventListener('click', function(e) {
+            const ripple = document.createElement('span');
+            const rect = this.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            const x = e.clientX - rect.left - size / 2;
+            const y = e.clientY - rect.top - size / 2;
+            
+            ripple.style.cssText = `
+              position: absolute;
+              width: ${size}px;
+              height: ${size}px;
+              left: ${x}px;
+              top: ${y}px;
+              border-radius: 50%;
+              background: rgba(255, 255, 255, 0.5);
+              pointer-events: none;
+              animation: rippleEffect 0.6s ease-out;
+            `;
+            
+            this.style.position = 'relative';
+            this.style.overflow = 'hidden';
+            this.appendChild(ripple);
+            
+            setTimeout(() => ripple.remove(), 600);
+          });
+        });
+
+        // Add CSS for ripple animation
+        const style = document.createElement('style');
+        style.textContent = `
+          @keyframes rippleEffect {
+            from {
+              transform: scale(0);
+              opacity: 1;
+            }
+            to {
+              transform: scale(2);
+              opacity: 0;
+            }
+          }
+        `;
+        document.head.appendChild(style);
+      });
+
+      // Smooth scroll to top on page refresh
+      if ('scrollRestoration' in history) {
+        history.scrollRestoration = 'manual';
+      }
+      window.scrollTo(0, 0);
     </script>
   </body>
 </html>
