@@ -271,9 +271,10 @@
         </div>
 
         <!-- Pesan Toast -->
-        <div id="toast" class="toast"></div>
+        <div class="toast-container" id="toastContainer"></div>
     </div>
 
+    <script src="/toast.js"></script>
     <script>
     let html5QrcodeScanner = null;
     let imageReader = null; // ZXing reader untuk decode gambar saja
@@ -500,14 +501,46 @@
         document.getElementById('loading').style.display = show ? 'flex' : 'none';
     }
 
-    // Tampilkan pesan toast
+    // Tampilkan pesan toast (menggunakan fungsi dari toast.js jika tersedia)
     function showToast(message, type = 'info') {
-        const toast = document.getElementById('toast');
-        toast.textContent = message;
-        toast.className = `toast toast-${type} show`;
+        // Cek apakah ada fungsi global showToast dari toast.js
+        if (window.showToastNotification) {
+            window.showToastNotification(message, type);
+            return;
+        }
         
+        // Fallback: buat toast manual jika toast.js tidak loaded
+        const container = document.getElementById('toastContainer');
+        if (!container) return;
+        
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        
+        // Icon berdasarkan tipe
+        const icons = {
+            success: '✓',
+            error: '✕',
+            warning: '⚠',
+            info: 'ℹ'
+        };
+        
+        toast.innerHTML = `
+            <div class="toast-icon">${icons[type] || 'ℹ'}</div>
+            <div class="toast-content">
+                <div class="toast-message">${message}</div>
+            </div>
+        `;
+        
+        container.appendChild(toast);
+        
+        // Auto remove setelah 3 detik
         setTimeout(() => {
-            toast.classList.remove('show');
+            toast.classList.add('hiding');
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+            }, 300);
         }, 3000);
     }
 
