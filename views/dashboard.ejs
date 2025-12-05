@@ -351,6 +351,97 @@
         font-style: italic;
         padding: 20px;
       }
+
+      /* Mobile Card List Styles */
+      .card-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .data-card {
+        background: linear-gradient(135deg, #FFFCFC 0%, #F5F0F1 100%);
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 4px 12px rgba(183, 110, 121, 0.15);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 2px solid rgba(183, 110, 121, 0.2);
+      }
+
+      .data-card:active {
+        transform: scale(0.98);
+        box-shadow: 0 2px 8px rgba(183, 110, 121, 0.25);
+      }
+
+      .data-card-header {
+        margin-bottom: 16px;
+      }
+
+      .data-card-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #592F3E;
+        margin-bottom: 4px;
+      }
+
+      .data-card-subtitle {
+        font-size: 14px;
+        color: #785964;
+        font-weight: 500;
+      }
+
+      .data-card-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .data-card-badge {
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        border: 1px solid;
+        display: inline-block;
+      }
+
+      .data-card-badge.badge-type {
+        background: rgba(188, 171, 176, 0.3);
+        color: #5D3543;
+        border-color: rgba(188, 171, 176, 0.5);
+      }
+
+      .data-card-badge.badge-province {
+        background: rgba(136, 79, 92, 0.2);
+        color: #592F3E;
+        border-color: rgba(136, 79, 92, 0.4);
+      }
+
+      .data-card-badge.badge-status {
+        background: rgba(120, 89, 100, 0.2);
+        color: #5D3543;
+        border-color: rgba(120, 89, 100, 0.4);
+      }
+
+      .badge-type[style*="PUSKESMAS"] {
+        background: rgba(188, 171, 176, 0.3) !important;
+        color: #5D3543 !important;
+        border-color: rgba(188, 171, 176, 0.5) !important;
+      }
+
+      .badge-type[style*="RUMAH"] {
+        background: rgba(136, 79, 92, 0.25) !important;
+        color: #592F3E !important;
+        border-color: rgba(136, 79, 92, 0.5) !important;
+      }
+
+      .badge-type[style*="KLINIK"] {
+        background: rgba(120, 89, 100, 0.25) !important;
+        color: #5D3543 !important;
+        border-color: rgba(120, 89, 100, 0.5) !important;
+      }
       
       @media (max-width: 768px) {
         .form-row {
@@ -704,7 +795,7 @@
                   <span class="data-card-badge badge-province">
                     <%= partner.province_code %>
                   </span>
-                  <span class="data-card-badge" style="background: rgba(183, 110, 121, 0.15); color: #B76E79; border: 1px solid rgba(183, 110, 121, 0.3);">
+                  <span class="data-card-badge" style="background: rgba(183, 110, 121, 0.25); color: #884F5C; border: 1px solid rgba(183, 110, 121, 0.5);">
                     <%= partner.total_protocols %> Protokol
                   </span>
                   <% if (partner.usage_rate && partner.usage_rate > 0) { %>
@@ -715,15 +806,15 @@
                 </div>
 
                 <% if (createdCount > 0 || deliveredCount > 0 || terpakaiCount > 0) { %>
-                  <div style="display: flex; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-subtle);">
+                  <div style="display: flex; gap: 12px; margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(183, 110, 121, 0.2);">
                     <% if (createdCount > 0) { %>
-                      <span style="font-size: 12px; color: #3B82F6;">Dibuat: <%= createdCount %></span>
+                      <span style="font-size: 13px; color: #B76E79; font-weight: 600;">Dibuat: <%= createdCount %></span>
                     <% } %>
                     <% if (deliveredCount > 0) { %>
-                      <span style="font-size: 12px; color: #F59E0B;">Terkirim: <%= deliveredCount %></span>
+                      <span style="font-size: 13px; color: #BCABB0; font-weight: 600;">Terkirim: <%= deliveredCount %></span>
                     <% } %>
                     <% if (terpakaiCount > 0) { %>
-                      <span style="font-size: 12px; color: #10B981;">Terpakai: <%= terpakaiCount %></span>
+                      <span style="font-size: 13px; color: #785964; font-weight: 600;">Terpakai: <%= terpakaiCount %></span>
                     <% } %>
                   </div>
                 <% } %>
@@ -1474,7 +1565,7 @@
               backgroundColor: themeColors.tooltipBg,
               titleColor: themeColors.text,
               bodyColor: themeColors.text,
-              borderColor: '#D63384',
+              borderColor: '#B76E79',
               borderWidth: 1,
               padding: 12,
               cornerRadius: 8
@@ -1505,34 +1596,34 @@
             datasets: [{
               label: 'Dibuat',
               data: dailyTrendsData.map(d => d.created),
-              borderColor: '#6366F1',
-              backgroundColor: 'rgba(99, 102, 241, 0.15)',
+              borderColor: '#B76E79',
+              backgroundColor: 'rgba(183, 110, 121, 0.15)',
               borderWidth: 2.5,
               tension: 0.4,
               pointRadius: 4,
-              pointBackgroundColor: '#6366F1',
+              pointBackgroundColor: '#B76E79',
               pointBorderColor: themeColors.chartBg,
               pointBorderWidth: 2
             }, {
               label: 'Terkirim',
               data: dailyTrendsData.map(d => d.delivered),
-              borderColor: '#F59E0B',
-              backgroundColor: 'rgba(245, 158, 11, 0.15)',
+              borderColor: '#BCABB0',
+              backgroundColor: 'rgba(188, 171, 176, 0.15)',
               borderWidth: 2.5,
               tension: 0.4,
               pointRadius: 4,
-              pointBackgroundColor: '#F59E0B',
+              pointBackgroundColor: '#BCABB0',
               pointBorderColor: themeColors.chartBg,
               pointBorderWidth: 2
             }, {
               label: 'Terpakai',
               data: dailyTrendsData.map(d => d.terpakai),
-              borderColor: '#10B981',
-              backgroundColor: 'rgba(16, 185, 129, 0.15)',
+              borderColor: '#785964',
+              backgroundColor: 'rgba(120, 89, 100, 0.15)',
               borderWidth: 2.5,
               tension: 0.4,
               pointRadius: 4,
-              pointBackgroundColor: '#10B981',
+              pointBackgroundColor: '#785964',
               pointBorderColor: themeColors.chartBg,
               pointBorderWidth: 2
             }]
@@ -1559,8 +1650,8 @@
                 const hour = hourlyData.find(h => parseInt(h.hour) === i);
                 return hour ? hour.count : 0;
               }),
-              backgroundColor: 'rgba(214, 51, 132, 0.25)',
-              borderColor: '#D63384',
+              backgroundColor: 'rgba(183, 110, 121, 0.25)',
+              borderColor: '#B76E79',
               borderWidth: 1.5
             }]
           },
@@ -1581,7 +1672,7 @@
             labels: ['Dibuat', 'Terkirim', 'Terpakai'],
             datasets: [{
               data: [<%= stats.created %>, <%= stats.delivered %>, <%= stats.terpakai %>],
-              backgroundColor: ['#6366F1', '#F59E0B', '#10B981'],
+              backgroundColor: ['#B76E79', '#BCABB0', '#785964'],
               borderWidth: 3,
               borderColor: themeColors.chartBg
             }]
@@ -1601,7 +1692,7 @@
                 backgroundColor: themeColors.tooltipBg,
                 titleColor: themeColors.text,
                 bodyColor: themeColors.text,
-                borderColor: '#D63384',
+                borderColor: '#B76E79',
                 borderWidth: 1,
                 padding: 12,
                 cornerRadius: 8
@@ -1620,7 +1711,7 @@
             datasets: [{
               label: 'Jumlah Protokol',
               data: provinceData.map(p => p.count),
-              backgroundColor: ['#D63384', '#9B7EBD', '#E685B5', '#6366F1', '#F59E0B'],
+              backgroundColor: ['#B76E79', '#884F5C', '#BCABB0', '#785964', '#5D3543'],
               borderWidth: 0
             }]
           },
