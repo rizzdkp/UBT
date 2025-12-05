@@ -1,11 +1,11 @@
 {
-  "name": "OBGYN Protocol System",
-  "short_name": "OBGYN Pro",
-  "description": "Modern OBGYN healthcare protocol management with real-time tracking",
+  "name": "UBT Protocol System",
+  "short_name": "UBT Pro",
+  "description": "Modern healthcare protocol management with real-time tracking",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#F8F5F9",
-  "theme_color": "#D63384",
+  "background_color": "#FFFCFC",
+  "theme_color": "#B76E79",
   "orientation": "portrait-primary",
   "scope": "/",
   "icons": [

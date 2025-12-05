@@ -5,9 +5,9 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     margin: 0;
     padding: 0;
-    background: #4a2c5c;
+    background: #592F3E;
     min-height: 100vh;
-    color: #2d3748;
+    color: #080808;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -139,18 +139,18 @@ body {
 
 .input-group input:focus {
     outline: none;
-    border-color: #E91E63;
-    box-shadow: 0 0 0 3px rgba(233, 30, 99, 0.15);
+    border-color: #B76E79;
+    box-shadow: 0 0 0 3px rgba(183, 110, 121, 0.15);
 }
 
 .btn-submit {
-    background: linear-gradient(135deg, #E91E63 0%, #C2185B 100%);
+    background: linear-gradient(135deg, #B76E79 0%, #884F5C 100%);
     color: white;
     white-space: nowrap;
 }
 
 .btn-submit:hover {
-    background: linear-gradient(135deg, #C2185B 0%, #9C27B0 100%);
+    background: linear-gradient(135deg, #884F5C 0%, #592F3E 100%);
 }
 
 .scan-result {
@@ -347,12 +347,12 @@ body {
 
 .toast {
     position: relative;
-    background: linear-gradient(135deg, #E91E63 0%, #9C27B0 100%);
+    background: linear-gradient(135deg, #B76E79 0%, #884F5C 100%);
     color: white;
     border-radius: 12px;
     padding: 16px 20px;
     margin-bottom: 12px;
-    box-shadow: 0 10px 30px rgba(233, 30, 99, 0.4), 0 4px 10px rgba(156, 39, 176, 0.3);
+    box-shadow: 0 10px 30px rgba(183, 110, 121, 0.4), 0 4px 10px rgba(136, 79, 92, 0.3);
     display: flex;
     align-items: center;
     gap: 12px;
@@ -366,7 +366,7 @@ body {
 
 .toast:hover {
     transform: translateX(0) scale(1.02);
-    box-shadow: 0 15px 40px rgba(233, 30, 99, 0.5), 0 6px 15px rgba(156, 39, 176, 0.4);
+    box-shadow: 0 15px 40px rgba(183, 110, 121, 0.5), 0 6px 15px rgba(136, 79, 92, 0.4);
 }
 
 .toast.hiding {
@@ -458,8 +458,8 @@ body {
 .patient-form-grid select:focus,
 .patient-form-grid textarea:focus {
     outline: none;
-    border-color: #E91E63 !important;
-    box-shadow: 0 0 0 3px rgba(233, 30, 99, 0.15);
+    border-color: #B76E79 !important;
+    box-shadow: 0 0 0 3px rgba(183, 110, 121, 0.15);
 }
 
 .patient-input-section {

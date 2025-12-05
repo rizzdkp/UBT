@@ -1,11 +1,12 @@
 /* Enhanced Login Page Styling */
 :root {
-  --color-primary: #E91E63;
-  --color-primary-600: #C2185B;
-  --color-primary-700: #9C27B0;
-  --color-accent-light: #F8BBD0;
-  --color-background-soft: #FCE4EC;
-  --gradient-primary: linear-gradient(135deg, #E91E63 0%, #9C27B0 100%);
+  /* Palette Main: #FFFCFC, #B76E79, #884F5C, #592F3E, #080808 */
+  --color-primary: #B76E79;
+  --color-primary-600: #884F5C;
+  --color-primary-700: #592F3E;
+  --color-accent-light: #FFFCFC;
+  --color-background-soft: #FFFCFC;
+  --gradient-primary: linear-gradient(135deg, #B76E79 0%, #884F5C 100%);
 }
 
 .login-body {
@@ -297,8 +298,8 @@
 * { box-sizing: border-box; }
 body { 
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
-  background: #4a2c5c;
-  color: #2d3748;
+  background: #FFFCFC;
+  color: #080808;
   margin: 0;
   padding: 20px;
   min-height: 100vh;
