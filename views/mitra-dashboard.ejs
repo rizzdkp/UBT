@@ -48,32 +48,50 @@
     .modal-close { background:none; border:none; font-size:24px; cursor:pointer; color:#9C27B0; padding:0 8px; }
     .modal-close:hover { color:#E91E63; }
     .btn-edit { 
-      background:linear-gradient(135deg,#3b82f6,#2563eb); 
-      color:#fff; 
-      padding: 6px 12px !important;
+      background:linear-gradient(135deg, #B76E79, #884F5C) !important; 
+      color:#fff !important; 
+      padding: 8px 14px !important;
       font-size: 12px !important;
       min-width: 90px;
+      border: none !important;
+      cursor: pointer;
+      transition: all 0.3s ease;
     }
-    .btn-edit:hover { background:linear-gradient(135deg,#2563eb,#1d4ed8); }
+    .btn-edit:hover { 
+      background:linear-gradient(135deg, #884F5C, #592F3E) !important; 
+      box-shadow: 0 4px 12px rgba(183, 110, 121, 0.3);
+      transform: translateY(-1px);
+    }
     
     /* Action buttons styling */
     .partners-table td.action-buttons { 
-      white-space: normal; 
-      min-width: 100px; 
+      white-space: normal !important; 
+      min-width: 110px !important; 
       text-align: center;
-      padding: 8px !important;
+      padding: 10px 8px !important;
+      vertical-align: middle;
     }
     .partners-table .action-buttons .btn-small { 
-      display: block; 
-      width: 100%;
-      margin: 3px auto; 
-      padding: 6px 10px;
-      font-size: 11px;
-      font-weight: 700;
+      display: block !important; 
+      width: 100% !important;
+      margin: 4px auto !important; 
+      padding: 8px 12px !important;
+      font-size: 12px !important;
+      font-weight: 700 !important;
+      border-radius: 8px !important;
+      cursor: pointer;
+      transition: all 0.3s ease;
     }
     .partners-table form { display: inline-block; margin: 0; width: 100%; }
     .btn-danger {
       min-width: 90px;
+      background: linear-gradient(135deg, #592F3E, #080808) !important;
+      border: none !important;
+    }
+    .btn-danger:hover {
+      background: linear-gradient(135deg, #080808, #000000) !important;
+      box-shadow: 0 4px 12px rgba(89, 47, 62, 0.3);
+      transform: translateY(-1px);
     }
     
     @media (max-width:760px){ 
@@ -206,10 +224,9 @@
                   <button type="button" class="btn-small btn-edit" onclick="openEditModal(<%= partner.id %>, '<%= partner.name.replace(/'/g, "\\'") %>', '<%= partner.type %>', '<%= partner.code %>', '<%= partner.province_code %>', '<%= (partner.phone || '').replace(/'/g, "\\'") %>', '<%= (partner.email || '').replace(/'/g, "\\'") %>', '<%= (partner.address || '').replace(/'/g, "\\'").replace(/\n/g, ' ') %>')">
                     ✏️ Edit
                   </button>
-                  <br>
                 <% } %>
                 <% if (user.role === 'admin') { %>
-                  <button type="button" class="btn-small btn-danger" onclick="confirmDelete(<%= partner.id %>, '<%= partner.name.replace(/'/g, "\\'") %>', <%= partner.protocol_count || 0 %>)" style="margin-top: 5px;">
+                  <button type="button" class="btn-small btn-danger" onclick="confirmDelete(<%= partner.id %>, '<%= partner.name.replace(/'/g, "\\'") %>', <%= partner.protocol_count || 0 %>)">
                     🗑️ Hapus
                   </button>
                 <% } %>
