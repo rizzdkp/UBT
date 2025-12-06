@@ -47,51 +47,37 @@
     .modal-header h3 { margin:0; color:#7b1fa2; font-size:1.3rem; }
     .modal-close { background:none; border:none; font-size:24px; cursor:pointer; color:#9C27B0; padding:0 8px; }
     .modal-close:hover { color:#E91E63; }
-    .btn-edit { 
-      background:linear-gradient(135deg, #B76E79, #884F5C) !important; 
-      color:#fff !important; 
-      padding: 8px 14px !important;
-      font-size: 12px !important;
-      min-width: 90px;
-      border: none !important;
+    /* Icon buttons styling */
+    .btn-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
       cursor: pointer;
       transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
     }
-    .btn-edit:hover { 
-      background:linear-gradient(135deg, #884F5C, #592F3E) !important; 
-      box-shadow: 0 4px 12px rgba(183, 110, 121, 0.3);
-      transform: translateY(-1px);
+    .btn-icon.btn-edit {
+      background: linear-gradient(135deg, #B76E79, #884F5C);
+      box-shadow: 0 2px 6px rgba(183, 110, 121, 0.3);
     }
-    
-    /* Action buttons styling */
-    .partners-table td.action-buttons { 
-      white-space: normal !important; 
-      min-width: 110px !important; 
-      text-align: center;
-      padding: 10px 8px !important;
-      vertical-align: middle;
+    .btn-icon.btn-edit:hover {
+      background: linear-gradient(135deg, #884F5C, #592F3E);
+      box-shadow: 0 4px 12px rgba(183, 110, 121, 0.4);
+      transform: translateY(-2px);
     }
-    .partners-table .action-buttons .btn-small { 
-      display: block !important; 
-      width: 100% !important;
-      margin: 4px auto !important; 
-      padding: 8px 12px !important;
-      font-size: 12px !important;
-      font-weight: 700 !important;
-      border-radius: 8px !important;
-      cursor: pointer;
-      transition: all 0.3s ease;
+    .btn-icon.btn-delete {
+      background: linear-gradient(135deg, #592F3E, #080808);
+      box-shadow: 0 2px 6px rgba(89, 47, 62, 0.3);
     }
-    .partners-table form { display: inline-block; margin: 0; width: 100%; }
-    .btn-danger {
-      min-width: 90px;
-      background: linear-gradient(135deg, #592F3E, #080808) !important;
-      border: none !important;
-    }
-    .btn-danger:hover {
-      background: linear-gradient(135deg, #080808, #000000) !important;
-      box-shadow: 0 4px 12px rgba(89, 47, 62, 0.3);
-      transform: translateY(-1px);
+    .btn-icon.btn-delete:hover {
+      background: linear-gradient(135deg, #080808, #000000);
+      box-shadow: 0 4px 12px rgba(89, 47, 62, 0.4);
+      transform: translateY(-2px);
     }
     
     @media (max-width:760px){ 
@@ -205,36 +191,43 @@
             <th>Protokol</th>
             <th>Status</th>
             <th>Dibuat</th>
-            <th>Aksi</th>
           </tr>
         </thead>
         <tbody>
           <% partners.forEach(function(partner){ %>
             <tr class="mitra-row <%= partner.is_active ? 'active' : 'inactive' %>" data-type="<%= partner.type %>" data-status="<%= partner.is_active ? 'active' : 'inactive' %>" data-name="<%= partner.name.toLowerCase() %>">
               <td><%= partner.id %></td>
-              <td><strong><%= partner.name %></strong><% if (partner.phone) { %><br><small>📞 <%= partner.phone %></small><% } %><% if (partner.email) { %><br><small>✉️ <%= partner.email %></small><% } %></td>
+              <td>
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                  <div style="flex: 1; min-width: 150px;">
+                    <strong><%= partner.name %></strong>
+                    <% if (partner.phone) { %><br><small>📞 <%= partner.phone %></small><% } %>
+                    <% if (partner.email) { %><br><small>✉️ <%= partner.email %></small><% } %>
+                  </div>
+                  <div style="display: flex; gap: 6px; flex-shrink: 0;">
+                    <% if (user.role === 'admin' || user.role === 'operator') { %>
+                      <button type="button" class="btn-icon btn-edit" onclick="openEditModal(<%= partner.id %>, '<%= partner.name.replace(/'/g, "\\'") %>', '<%= partner.type %>', '<%= partner.code %>', '<%= partner.province_code %>', '<%= (partner.phone || '').replace(/'/g, "\\'") %>', '<%= (partner.email || '').replace(/'/g, "\\'") %>', '<%= (partner.address || '').replace(/'/g, "\\'").replace(/\n/g, ' ') %>')" title="Edit Mitra">
+                        ✏️
+                      </button>
+                    <% } %>
+                    <% if (user.role === 'admin') { %>
+                      <button type="button" class="btn-icon btn-delete" onclick="confirmDelete(<%= partner.id %>, '<%= partner.name.replace(/'/g, "\\'") %>', <%= partner.protocol_count || 0 %>)" title="Hapus Mitra">
+                        🗑️
+                      </button>
+                    <% } %>
+                  </div>
+                </div>
+              </td>
               <td><span class="type-badge"><%= partner.type.replace('_',' ').toUpperCase() %></span></td>
               <td><code><%= partner.code %></code></td>
               <td><%= partner.province_code %></td>
               <td><span class="protocol-count"><%= partner.protocol_count || 0 %></span></td>
               <td><span class="status-badge <%= partner.is_active ? 'status-active':'status-inactive' %>"><%= partner.is_active ? 'Aktif':'Tidak Aktif' %></span></td>
               <td><%= new Date(partner.created_at).toLocaleDateString('id-ID') %><% if (partner.created_by_username) { %><br><small>by <%= partner.created_by_username %></small><% } %></td>
-              <td class="action-buttons">
-                <% if (user.role === 'admin' || user.role === 'operator') { %>
-                  <button type="button" class="btn-small btn-edit" onclick="openEditModal(<%= partner.id %>, '<%= partner.name.replace(/'/g, "\\'") %>', '<%= partner.type %>', '<%= partner.code %>', '<%= partner.province_code %>', '<%= (partner.phone || '').replace(/'/g, "\\'") %>', '<%= (partner.email || '').replace(/'/g, "\\'") %>', '<%= (partner.address || '').replace(/'/g, "\\'").replace(/\n/g, ' ') %>')">
-                    ✏️ Edit
-                  </button>
-                <% } %>
-                <% if (user.role === 'admin') { %>
-                  <button type="button" class="btn-small btn-danger" onclick="confirmDelete(<%= partner.id %>, '<%= partner.name.replace(/'/g, "\\'") %>', <%= partner.protocol_count || 0 %>)">
-                    🗑️ Hapus
-                  </button>
-                <% } %>
-              </td>
             </tr>
           <% }) %>
           <% if (partners.length === 0) { %>
-            <tr><td colspan="9" class="no-data">Belum ada mitra.</td></tr>
+            <tr><td colspan="8" class="no-data">Belum ada mitra.</td></tr>
           <% } %>
         </tbody>
       </table>
