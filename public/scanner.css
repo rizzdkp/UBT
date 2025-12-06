@@ -118,8 +118,6 @@ body {
 
 .scanner-section {
     background: white;
-.scanner-section {
-    background: white;
     padding: 25px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     border-radius: 16px;
@@ -135,7 +133,9 @@ body {
     .scanner-section {
         padding: 25px;
     }
-}qr-reader {
+}
+
+.qr-reader {
     border-radius: 8px;
     overflow: hidden;
     margin-bottom: 20px;
@@ -222,10 +222,6 @@ body {
     box-shadow: 0 4px 12px rgba(183, 110, 121, 0.3);
 }
 
-.btn-submit:hover {
-    background: linear-gradient(135deg, #884F5C 0%, #592F3E 100%);
-}
-
 .scan-result {
     background: white;
     border-radius: 12px;
@@ -290,10 +286,7 @@ body {
 }
 
 .action-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-top: 20px;
+    margin-top: 15px;
 }
 
 .btn-terpakai {
@@ -326,59 +319,7 @@ body {
     box-shadow: 0 4px 12px rgba(188, 171, 176, 0.3);
 }
 
-/* Mobile Button Overrides */
-@media (max-width: 768px) {
-    /* Primary Action Button - Start Scan */
-    .btn-scan {
-        background: linear-gradient(135deg, #B76E79 0%, #884F5C 100%) !important;
-        color: white !important;
-        border: none;
-        box-shadow: 0 4px 12px rgba(183, 110, 121, 0.3);
-    }
-    
-    .btn-scan:hover, .btn-scan:active {
-        background: linear-gradient(135deg, #884F5C 0%, #592F3E 100%) !important;
-        transform: translateY(-1px);
-        box-shadow: 0 6px 16px rgba(183, 110, 121, 0.4);
-    }
-    
-    /* Stop Button */
-    .btn-stop {
-        background: linear-gradient(135deg, #592F3E 0%, #080808 100%) !important;
-        color: white !important;
-        border: none;
-    }
-    
-    .btn-stop:hover, .btn-stop:active {
-        background: linear-gradient(135deg, #080808 0%, #000000 100%) !important;
-    }
-    
-    /* Secondary Button - Pick Image */
-    .btn-secondary {
-        background: #BCABB0 !important;
-        color: #592F3E !important;
-        border: none !important;
-    }
-    
-    .btn-secondary:hover, .btn-secondary:active {
-        background: #785964 !important;
-        color: #FFFCFC !important;
-    }
-    
-    /* Submit Button */
-    .btn-submit {
-        background: linear-gradient(135deg, #B76E79 0%, #884F5C 100%) !important;
-        color: white !important;
-        border: none;
-        box-shadow: 0 4px 12px rgba(183, 110, 121, 0.3);
-    }
-    
-    .btn-submit:hover, .btn-submit:active {
-        background: linear-gradient(135deg, #884F5C 0%, #592F3E 100%) !important;
-        transform: translateY(-1px);
-        box-shadow: 0 6px 16px rgba(183, 110, 121, 0.4);
-    }
-}
+
 
 .loading-overlay {
     position: fixed;
@@ -410,147 +351,15 @@ body {
     100% { transform: rotate(360deg); }
 }
 
-/* Toast Notification - Top Right Style */
-.toast-container {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 10000;
-    max-width: 400px;
-    width: auto;
-    pointer-events: none;
-}
 
-.toast {
-    position: relative;
-    background: linear-gradient(135deg, #B76E79 0%, #884F5C 100%);
-    color: white;
-    border-radius: 12px;
-    padding: 16px 20px;
-    margin-bottom: 12px;
-    box-shadow: 0 10px 30px rgba(183, 110, 121, 0.4), 0 4px 10px rgba(136, 79, 92, 0.3);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    opacity: 0;
-    transform: translateX(100px);
-    animation: toastSlideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-    pointer-events: auto;
-    backdrop-filter: blur(10px);
-    min-width: 300px;
-}
-
-.toast:hover {
-    transform: translateX(0) scale(1.02);
-    box-shadow: 0 15px 40px rgba(183, 110, 121, 0.5), 0 6px 15px rgba(136, 79, 92, 0.4);
-}
-
-.toast.hiding {
-    animation: toastSlideOut 0.3s ease-in forwards;
-}
-
-/* Toast Icon */
-.toast-icon {
-    flex-shrink: 0;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    font-weight: bold;
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-}
-
-/* Toast Content */
-.toast-content {
-    flex: 1;
-    min-width: 0;
-}
-
-.toast-message {
-    color: white;
-    font-size: 14px;
-    font-weight: 500;
-    line-height: 1.5;
-    margin: 0;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
-/* Toast Animations */
-@keyframes toastSlideIn {
-    0% {
-        opacity: 0;
-        transform: translateX(400px);
-    }
-    100% {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-@keyframes toastSlideOut {
-    0% {
-        opacity: 1;
-        transform: translateX(0);
-    }
-    100% {
-        opacity: 0;
-        transform: translateX(400px);
-    }
-}
-
-/* Responsive untuk mobile */
-@media (max-width: 640px) {
-    .toast-container {
-        width: 95%;
-    }
-    
-    .toast {
-        padding: 16px 20px;
-    }
-    
-    .toast-icon {
-        width: 40px;
-        height: 40px;
-        font-size: 20px;
-    }
-    
-    .toast-message {
-        font-size: 14px;
-    }
-}
 
 /* Patient Form Styling */
-.patient-form-grid input,
-.patient-form-grid select,
-.patient-form-grid textarea {
-    transition: border-color 0.2s, box-shadow 0.2s;
-}
-
 .patient-form-grid input:focus,
 .patient-form-grid select:focus,
 .patient-form-grid textarea:focus {
     outline: none;
     border-color: #B76E79 !important;
-    box-shadow: 0 0 0 3px rgba(183, 110, 121, 0.15);
-}
-
-.patient-input-section {
-    animation: slideInUp 0.3s ease-out;
-}
-
-@keyframes slideInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    box-shadow: 0 0 0 2px rgba(183, 110, 121, 0.15);
 }
 
 /* Responsive */
@@ -640,28 +449,4 @@ body {
         margin: 0 5px;
     }
     
-    /* Patient Form Mobile */
-    .patient-input-section {
-        padding: 15px !important;
-        margin: 15px 0 !important;
-    }
-    
-    .patient-input-section h4 {
-        font-size: 14px !important;
-    }
-    
-    .patient-form-grid {
-        gap: 10px !important;
-    }
-    
-    .patient-form-grid input,
-    .patient-form-grid select,
-    .patient-form-grid textarea {
-        padding: 12px !important;
-        font-size: 16px !important; /* Prevent zoom on iOS */
-    }
-    
-    .patient-form-grid label {
-        font-size: 12px !important;
-    }
 }

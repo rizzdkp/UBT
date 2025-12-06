@@ -68,75 +68,52 @@
                 <div id="result-content"></div>
                 
                 <!-- Patient Input Section -->
-                <div class="patient-input-section" style="margin: 20px 0; padding: 20px; background: linear-gradient(135deg, #FFFCFC 0%, #F5F0F1 100%); border-radius: 12px; border: 2px solid #B76E79;">
-                    <h4 style="margin: 0 0 15px 0; color: #592F3E; font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                        <span style="font-size: 20px;">👤</span> Data Pasien
+                <div class="patient-input-section" style="margin: 15px 0; padding: 16px; background: white; border-radius: 10px; border: 2px solid #B76E79;">
+                    <h4 style="margin: 0 0 12px 0; color: #592F3E; font-size: 15px; font-weight: 700;">
+                        👤 Data Pasien
                     </h4>
                     
-                    <div class="patient-form-grid" style="display: grid; grid-template-columns: 1fr; gap: 12px;">
+                    <div class="patient-form-grid" style="display: grid; grid-template-columns: 1fr; gap: 10px;">
                         <!-- Nama Pasien (Required) -->
                         <div class="form-group">
-                            <label for="patient-name" style="display: block; margin-bottom: 5px; font-weight: 600; color: #4a5568; font-size: 13px;">
-                                Nama Lengkap Pasien <span style="color: #ef4444;">*</span>
+                            <label for="patient-name" style="display: block; margin-bottom: 4px; font-weight: 600; color: #592F3E; font-size: 12px;">
+                                Nama Pasien <span style="color: #ef4444;">*</span>
                             </label>
                             <input 
                                 type="text" 
                                 id="patient-name" 
                                 placeholder="Contoh: Ibu Siti Aminah" 
                                 required 
-                                style="width: 100%; padding: 10px 12px; border: 2px solid #B76E79; border-radius: 8px; font-size: 14px; background: white;"
+                                style="width: 100%; padding: 9px 12px; border: 1.5px solid #B76E79; border-radius: 6px; font-size: 13px; background: white;"
                             />
                         </div>
                         
                         <!-- Nama Faskes -->
-                        <div class="form-group">
-                            <label for="faskes-name" style="display: block; margin-bottom: 5px; font-weight: 600; color: #4a5568; font-size: 13px;">
-                                Nama Faskes
-                            </label>
-                            <input 
-                                type="text" 
-                                id="faskes-name" 
-                                placeholder="Contoh: RS Budi Asih" 
-                                style="width: 100%; padding: 10px 12px; border: 2px solid #BCABB0; border-radius: 8px; font-size: 14px; background: white;"
-                            />
+                        <div>
+                            <label for="faskes-name" style="display: block; margin-bottom: 4px; font-weight: 600; color: #592F3E; font-size: 12px;">Nama Faskes</label>
+                            <input type="text" id="faskes-name" placeholder="Contoh: RS Budi Asih" 
+                                style="width: 100%; padding: 9px 12px; border: 1.5px solid #BCABB0; border-radius: 6px; font-size: 13px; background: white;" />
                         </div>
                         
-                        <!-- Row: Pekerjaan & Status Pekerjaan -->
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                            <div class="form-group">
-                                <label for="pekerjaan" style="display: block; margin-bottom: 5px; font-weight: 600; color: #4a5568; font-size: 13px;">
-                                    Pekerjaan
-                                </label>
-                                <input 
-                                    type="text" 
-                                    id="pekerjaan" 
-                                    placeholder="Contoh: IRT" 
-                                    style="width: 100%; padding: 10px 12px; border: 2px solid #BCABB0; border-radius: 8px; font-size: 14px; background: white;"
-                                />
+                        <!-- Row: Pekerjaan & Status -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                            <div>
+                                <label for="pekerjaan" style="display: block; margin-bottom: 4px; font-weight: 600; color: #592F3E; font-size: 12px;">Pekerjaan</label>
+                                <input type="text" id="pekerjaan" placeholder="IRT" 
+                                    style="width: 100%; padding: 9px 12px; border: 1.5px solid #BCABB0; border-radius: 6px; font-size: 13px; background: white;" />
                             </div>
-                            <div class="form-group">
-                                <label for="status-pekerjaan" style="display: block; margin-bottom: 5px; font-weight: 600; color: #4a5568; font-size: 13px;">
-                                    Status Pekerjaan
-                                </label>
-                                <input 
-                                    type="text" 
-                                    id="status-pekerjaan" 
-                                    placeholder="Aktif/Tidak" 
-                                    style="width: 100%; padding: 10px 12px; border: 2px solid #BCABB0; border-radius: 8px; font-size: 14px; background: white;"
-                                />
+                            <div>
+                                <label for="status-pekerjaan" style="display: block; margin-bottom: 4px; font-weight: 600; color: #592F3E; font-size: 12px;">Status</label>
+                                <input type="text" id="status-pekerjaan" placeholder="Aktif/Tidak" 
+                                    style="width: 100%; padding: 9px 12px; border: 1.5px solid #BCABB0; border-radius: 6px; font-size: 13px; background: white;" />
                             </div>
                         </div>
                         
                         <!-- Status Pernikahan -->
-                        <div class="form-group">
-                            <label for="status-pernikahan" style="display: block; margin-bottom: 5px; font-weight: 600; color: #4a5568; font-size: 13px;">
-                                Status Pernikahan
-                            </label>
-                            <select 
-                                id="status-pernikahan" 
-                                style="width: 100%; padding: 10px 12px; border: 2px solid #BCABB0; border-radius: 8px; font-size: 14px; background: white;"
-                            >
-                                <option value="">-- Pilih Status --</option>
+                        <div>
+                            <label for="status-pernikahan" style="display: block; margin-bottom: 4px; font-weight: 600; color: #592F3E; font-size: 12px;">Status Pernikahan</label>
+                            <select id="status-pernikahan" style="width: 100%; padding: 9px 12px; border: 1.5px solid #BCABB0; border-radius: 6px; font-size: 13px; background: white;">
+                                <option value="">-- Pilih --</option>
                                 <option value="MENIKAH">Menikah</option>
                                 <option value="BELUM MENIKAH">Belum Menikah</option>
                                 <option value="CERAI">Cerai</option>
@@ -145,108 +122,63 @@
                         </div>
                         
                         <!-- Alamat -->
-                        <div class="form-group">
-                            <label for="alamat" style="display: block; margin-bottom: 5px; font-weight: 600; color: #4a5568; font-size: 13px;">
-                                Alamat Lengkap
-                            </label>
-                            <textarea 
-                                id="alamat" 
-                                rows="2" 
-                                placeholder="Jalan, RT/RW, Kelurahan, Kecamatan" 
-                                style="width: 100%; padding: 10px 12px; border: 2px solid #BCABB0; border-radius: 8px; font-size: 14px; background: white; resize: vertical;"
-                            ></textarea>
+                        <div>
+                            <label for="alamat" style="display: block; margin-bottom: 4px; font-weight: 600; color: #592F3E; font-size: 12px;">Alamat</label>
+                            <textarea id="alamat" rows="2" placeholder="Jalan, RT/RW, Kelurahan" 
+                                style="width: 100%; padding: 9px 12px; border: 1.5px solid #BCABB0; border-radius: 6px; font-size: 13px; background: white; resize: vertical;"></textarea>
                         </div>
                         
                         <!-- Row: Provinsi & Kabupaten -->
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                            <div class="form-group">
-                                <label for="provinsi" style="display: block; margin-bottom: 5px; font-weight: 600; color: #4a5568; font-size: 13px;">
-                                    Provinsi
-                                </label>
-                                <select 
-                                    id="provinsi" 
-                                    style="width: 100%; padding: 10px 12px; border: 2px solid #BCABB0; border-radius: 8px; font-size: 14px; background: white;"
-                                >
-                                    <option value="">-- Pilih Provinsi --</option>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                            <div>
+                                <label for="provinsi" style="display: block; margin-bottom: 4px; font-weight: 600; color: #592F3E; font-size: 12px;">Provinsi</label>
+                                <select id="provinsi" style="width: 100%; padding: 9px 12px; border: 1.5px solid #BCABB0; border-radius: 6px; font-size: 13px; background: white;">
+                                    <option value="">-- Pilih --</option>
                                 </select>
                             </div>
-                            <div class="form-group">
-                                <label for="kabupaten" style="display: block; margin-bottom: 5px; font-weight: 600; color: #4a5568; font-size: 13px;">
-                                    Kabupaten/Kota
-                                </label>
-                                <select 
-                                    id="kabupaten" 
-                                    style="width: 100%; padding: 10px 12px; border: 2px solid #BCABB0; border-radius: 8px; font-size: 14px; background: white;"
-                                    disabled
-                                >
-                                    <option value="">-- Pilih Kabupaten --</option>
+                            <div>
+                                <label for="kabupaten" style="display: block; margin-bottom: 4px; font-weight: 600; color: #592F3E; font-size: 12px;">Kabupaten</label>
+                                <select id="kabupaten" disabled style="width: 100%; padding: 9px 12px; border: 1.5px solid #BCABB0; border-radius: 6px; font-size: 13px; background: white;">
+                                    <option value="">-- Pilih --</option>
                                 </select>
                             </div>
                         </div>
                         
                         <!-- Tindakan -->
-                        <div class="form-group">
-                            <label for="tindakan" style="display: block; margin-bottom: 5px; font-weight: 600; color: #4a5568; font-size: 13px;">
-                                Tindakan Medis
-                            </label>
-                            <input 
-                                type="text" 
-                                id="tindakan" 
-                                placeholder="Contoh: Pemeriksaan Kehamilan, USG" 
-                                style="width: 100%; padding: 10px 12px; border: 2px solid #BCABB0; border-radius: 8px; font-size: 14px; background: white;"
-                            />
+                        <div>
+                            <label for="tindakan" style="display: block; margin-bottom: 4px; font-weight: 600; color: #592F3E; font-size: 12px;">Tindakan</label>
+                            <input type="text" id="tindakan" placeholder="Pemeriksaan Kehamilan, USG" 
+                                style="width: 100%; padding: 9px 12px; border: 1.5px solid #BCABB0; border-radius: 6px; font-size: 13px; background: white;" />
                         </div>
                         
-                        <!-- GPA (Gravida, Para, Abortus) -->
-                        <div style="background: white; padding: 12px; border-radius: 8px; border: 2px solid #BCABB0;">
-                            <label style="display: block; margin-bottom: 8px; font-weight: 700; color: #592F3E; font-size: 13px;">
-                                GPA (Gravida - Para - Abortus)
-                            </label>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+                        <!-- GPA -->
+                        <div style="background: #f8f9fa; padding: 10px; border-radius: 6px; border: 1.5px solid #BCABB0;">
+                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #592F3E; font-size: 12px;">GPA (G-P-A)</label>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;">
                                 <div>
-                                    <label for="gpa-gravida" style="display: block; margin-bottom: 4px; font-size: 12px; color: #6b7280;">Gravida (G)</label>
-                                    <input 
-                                        type="number" 
-                                        id="gpa-gravida" 
-                                        min="0" 
-                                        placeholder="0" 
-                                        style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;"
-                                    />
+                                    <label for="gpa-gravida" style="display: block; margin-bottom: 3px; font-size: 11px; color: #6b7280;">G</label>
+                                    <input type="number" id="gpa-gravida" min="0" placeholder="0" 
+                                        style="width: 100%; padding: 7px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;" />
                                 </div>
                                 <div>
-                                    <label for="gpa-para" style="display: block; margin-bottom: 4px; font-size: 12px; color: #6b7280;">Para (P)</label>
-                                    <input 
-                                        type="number" 
-                                        id="gpa-para" 
-                                        min="0" 
-                                        placeholder="0" 
-                                        style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;"
-                                    />
+                                    <label for="gpa-para" style="display: block; margin-bottom: 3px; font-size: 11px; color: #6b7280;">P</label>
+                                    <input type="number" id="gpa-para" min="0" placeholder="0" 
+                                        style="width: 100%; padding: 7px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;" />
                                 </div>
                                 <div>
-                                    <label for="gpa-abortus" style="display: block; margin-bottom: 4px; font-size: 12px; color: #6b7280;">Abortus (A)</label>
-                                    <input 
-                                        type="number" 
-                                        id="gpa-abortus" 
-                                        min="0" 
-                                        placeholder="0" 
-                                        style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;"
-                                    />
+                                    <label for="gpa-abortus" style="display: block; margin-bottom: 3px; font-size: 11px; color: #6b7280;">A</label>
+                                    <input type="number" id="gpa-abortus" min="0" placeholder="0" 
+                                        style="width: 100%; padding: 7px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;" />
                                 </div>
                             </div>
                         </div>
                         
                         <!-- Tenaga Kesehatan -->
-                        <div class="form-group">
-                            <label for="tenaga-kesehatan" style="display: block; margin-bottom: 5px; font-weight: 600; color: #4a5568; font-size: 13px;">
-                                Tenaga Kesehatan
-                            </label>
-                            <select 
-                                id="tenaga-kesehatan" 
-                                style="width: 100%; padding: 10px 12px; border: 2px solid #BCABB0; border-radius: 8px; font-size: 14px; background: white;"
-                            >
+                        <div>
+                            <label for="tenaga-kesehatan" style="display: block; margin-bottom: 4px; font-weight: 600; color: #592F3E; font-size: 12px;">Tenaga Kesehatan</label>
+                            <select id="tenaga-kesehatan" style="width: 100%; padding: 9px 12px; border: 1.5px solid #BCABB0; border-radius: 6px; font-size: 13px; background: white;">
                                 <option value="">-- Pilih --</option>
-                                <option value="RS">Rumah Sakit (RS)</option>
+                                <option value="RS">Rumah Sakit</option>
                                 <option value="BIDAN">Bidan</option>
                                 <option value="KLINIK">Klinik</option>
                                 <option value="PUSKESMAS">Puskesmas</option>
@@ -256,9 +188,9 @@
                     </div>
                 </div>
                 
-                <div class="action-buttons" id="action-buttons" style="display: none;">
-                    <button id="mark-terpakai" class="btn-action btn-terpakai">✅ Tandai Sebagai Terpakai</button>
-                    <button id="mark-delivered" class="btn-action btn-delivered">🚚 Tandai Sebagai Terkirim</button>
+                <div class="action-buttons" id="action-buttons" style="display: none; margin-top: 15px; display: flex; flex-direction: column; gap: 8px;">
+                    <button id="mark-terpakai" class="btn-action btn-terpakai">✅ Tandai Terpakai</button>
+                    <button id="mark-delivered" class="btn-action btn-delivered">🚚 Tandai Terkirim</button>
                     <button id="scan-another" class="btn-action btn-secondary">🔄 Pindai Lagi</button>
                 </div>
             </div>
@@ -705,6 +637,5 @@
         });
     }
     </script>
-    <script src="/toast.js"></script>
 </body>
 </html>
