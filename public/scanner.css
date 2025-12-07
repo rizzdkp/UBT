@@ -1,13 +1,20 @@
 /* Scanner App Styling */
-* { box-sizing: border-box; }
+* { 
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+}
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     margin: 0;
     padding: 0;
     background: linear-gradient(135deg, #B76E79 0%, #884F5C 100%);
+    background-attachment: fixed;
     min-height: 100vh;
     color: #080808;
+    overflow-x: hidden;
+    width: 100%;
+    -webkit-font-smoothing: antialiased;
 }
 
 @media (max-width: 768px) {
@@ -16,6 +23,11 @@ body {
         justify-content: center;
         align-items: center;
         padding: 20px 15px;
+        min-height: -webkit-fill-available;
+    }
+    
+    html {
+        height: -webkit-fill-available;
     }
 }
 
@@ -327,7 +339,8 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(89, 47, 62, 0.85);
+    backdrop-filter: blur(5px);
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -336,14 +349,23 @@ body {
     color: white;
 }
 
+.loading-overlay p {
+    font-size: 16px;
+    font-weight: 500;
+    color: #FFFCFC;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
 .spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid rgba(255, 255, 255, 0.3);
-    border-top: 4px solid white;
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(183, 110, 121, 0.3);
+    border-top: 4px solid #B76E79;
+    border-right: 4px solid #884F5C;
     border-radius: 50%;
     animation: spin 1s linear infinite;
     margin-bottom: 15px;
+    box-shadow: 0 0 20px rgba(183, 110, 121, 0.5);
 }
 
 @keyframes spin {

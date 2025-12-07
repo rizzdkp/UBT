@@ -2,29 +2,47 @@
    MOBILE & TABLET RESPONSIVE ENHANCEMENTS
    ============================================ */
 
+/* Chrome Mobile Fixes */
+@supports (-webkit-appearance:none) {
+  * {
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+}
+
 /* Touch-friendly base improvements */
 * {
-  -webkit-tap-highlight-color: rgba(233, 30, 99, 0.15);
+  -webkit-tap-highlight-color: rgba(183, 110, 121, 0.15);
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;
+  box-sizing: border-box;
 }
 
 input, textarea, select, button {
   -webkit-user-select: text;
   user-select: text;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 /* Smooth scrolling for all devices with momentum */
 html {
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
+  height: 100%;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overscroll-behavior-y: contain;
+  min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
+  position: relative;
 }
 
 /* Add smooth transitions for all interactive elements */
@@ -85,16 +103,24 @@ button:active, a:active, .btn:active {
    MOBILE FIRST (320px - 480px)
    ============================================ */
 @media (max-width: 480px) {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  
   body {
     font-size: 14px;
     padding: 0;
     margin: 0;
+    min-height: -webkit-fill-available;
   }
 
   .container {
     max-width: 100%;
     padding: 10px;
     margin: 0;
+    width: 100%;
+    overflow-x: hidden;
   }
 
   /* Header */
@@ -140,6 +166,10 @@ button:active, a:active, .btn:active {
     background: white;
     animation: slideUpFade 0.4s ease-out;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    width: 100%;
+    overflow: hidden;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
   }
 
   @keyframes slideUpFade {
@@ -324,6 +354,15 @@ button:active, a:active, .btn:active {
     width: 100% !important;
     height: 250px !important;
     margin-bottom: 15px;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .chart-container canvas {
+    max-width: 100% !important;
+    height: auto !important;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
   }
 
   /* Metrics grid with hover effects */
@@ -336,8 +375,12 @@ button:active, a:active, .btn:active {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     border-radius: 16px !important;
     background: linear-gradient(135deg, #B76E79 0%, #884F5C 100%) !important;
-    box-shadow: 0 6px 20px rgba(233, 30, 99, 0.3) !important;
+    box-shadow: 0 6px 20px rgba(183, 110, 121, 0.3) !important;
     animation: slideInLeft 0.5s ease-out backwards;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    width: 100%;
+    min-height: 120px;
   }
 
   .metric-card:nth-child(1) { animation-delay: 0.1s; }
@@ -1199,6 +1242,10 @@ a:active {
     padding: 16px;
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    width: 100%;
+    overflow: hidden;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
   }
 
   /* Protocol filter section */
@@ -1214,6 +1261,15 @@ a:active {
   .filter-section button {
     width: 100%;
     margin-bottom: 10px;
+  }
+  
+  /* Select wrapper for mobile */
+  .select-wrapper {
+    width: 100%;
+  }
+  
+  .select-wrapper select {
+    width: 100%;
   }
 
   /* Protocol code display */

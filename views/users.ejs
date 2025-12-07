@@ -247,6 +247,11 @@
                                             class="btn-sm btn-info">
                                         RESET PASS
                                     </button>
+                                    <button type="button" 
+                                            onclick="confirmDeleteUser(<%= u.id %>, '<%= u.username %>')" 
+                                            class="btn-sm btn-danger">
+                                        DELETE
+                                    </button>
                                 <% } %>
                             </td>
                         </tr>
@@ -409,6 +414,35 @@
             .catch(error => {
                 console.error('Error:', error);
                 alert('❌ Error updating user status. Please try again.');
+            });
+        }
+        
+        // Delete User
+        function confirmDeleteUser(userId, username) {
+            if (!confirm(`⚠️ WARNING: Are you sure you want to DELETE user "${username}"?\n\nThis action CANNOT be undone!\n\nAll activity logs associated with this user will also be deleted.`)) {
+                return;
+            }
+            
+            // Double confirmation
+            if (!confirm(`⚠️ FINAL CONFIRMATION: Delete user "${username}" permanently?`)) {
+                return;
+            }
+            
+            fetch(`/users/${userId}/delete`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(`✅ User "${username}" deleted successfully!`);
+                    window.location.reload();
+                } else {
+                    alert('❌ Error: ' + (data.error || 'Failed to delete user'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('❌ Error deleting user. Please try again.');
             });
         }
         

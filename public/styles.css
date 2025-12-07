@@ -539,9 +539,22 @@ tr:hover {
 }
 
 .actions-cell button {
-  padding: 4px 8px;
+  padding: 6px 12px;
   margin: 0;
   font-size: 11px;
+  background: linear-gradient(135deg, #B76E79 0%, #884F5C 100%);
+  color: white;
+  border: none;
+  border-radius: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+}
+
+.actions-cell button:hover {
+  background: linear-gradient(135deg, #884F5C 0%, #592F3E 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(183, 110, 121, 0.3);
 }
 
 .actions-cell a {
@@ -997,6 +1010,36 @@ tr:hover {
 .filter-group input, .filter-group select {
   max-width: 150px;
   margin: 0;
+}
+
+/* Select wrapper with dropdown icon */
+.select-wrapper {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.select-wrapper select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding-right: 35px;
+  cursor: pointer;
+}
+
+.select-wrapper .dropdown-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #B76E79;
+  font-size: 12px;
+  transition: transform 0.3s ease;
+}
+
+.select-wrapper select:focus + .dropdown-icon {
+  transform: translateY(-50%) rotate(180deg);
 }
 
 .btn-filter {

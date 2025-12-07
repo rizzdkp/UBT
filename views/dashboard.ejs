@@ -3,6 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
     <title>Dasbor - Protokol Barcode</title>
     
     <!-- PWA Meta Tags -->
@@ -15,6 +17,7 @@
     
     <link rel="stylesheet" href="/styles.css" />
     <link rel="stylesheet" href="/mobile-responsive.css" />
+    <link rel="stylesheet" href="/chrome-mobile-fix.css" />
     <link rel="stylesheet" href="/toast.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -561,12 +564,15 @@
             <div class="filter-row">
               <div class="filter-group">
                 <label>Filter Periode</label>
-                <select name="period" id="periodSelect">
-                  <option value="today" <%= (req.query.period || 'today') === 'today' ? 'selected' : '' %>>Hari Ini</option>
-                  <option value="week" <%= req.query.period === 'week' ? 'selected' : '' %>>Minggu Ini</option>
-                  <option value="month" <%= req.query.period === 'month' ? 'selected' : '' %>>Bulan Ini</option>
-                  <option value="custom" <%= req.query.period === 'custom' ? 'selected' : '' %>>Rentang Tanggal Khusus</option>
-                </select>
+                <div class="select-wrapper">
+                  <select name="period" id="periodSelect">
+                    <option value="today" <%= (req.query.period || 'today') === 'today' ? 'selected' : '' %>>Hari Ini</option>
+                    <option value="week" <%= req.query.period === 'week' ? 'selected' : '' %>>Minggu Ini</option>
+                    <option value="month" <%= req.query.period === 'month' ? 'selected' : '' %>>Bulan Ini</option>
+                    <option value="custom" <%= req.query.period === 'custom' ? 'selected' : '' %>>Rentang Tanggal Khusus</option>
+                  </select>
+                  <span class="dropdown-icon">▼</span>
+                </div>
               </div>
               <div class="filter-group custom-date-range" style="display: <%= req.query.period === 'custom' ? 'block' : 'none' %>;">
                 <label>Dari</label>
@@ -1129,7 +1135,9 @@
                         <option value="terpakai" <%= p.status === 'terpakai' ? 'selected' : '' %>>Terpakai</option>
                       </select>
                       <button type="submit" 
-                              style="padding: 10px 20px; background: var(--accent-primary); color: white; border: none; border-radius: var(--radius-sm); font-weight: 600; font-size: 14px; cursor: pointer;">
+                              style="padding: 10px 20px; background: linear-gradient(135deg, #B76E79 0%, #884F5C 100%); color: white; border: none; border-radius: 20px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s ease;" 
+                              onmouseover="this.style.background='linear-gradient(135deg, #884F5C 0%, #592F3E 100%)'" 
+                              onmouseout="this.style.background='linear-gradient(135deg, #B76E79 0%, #884F5C 100%)'">
                         Perbarui
                       </button>
                     </div>

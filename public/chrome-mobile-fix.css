@@ -1,0 +1,192 @@
+/* ============================================
+   CHROME MOBILE SPECIFIC FIXES
+   Ensures consistent rendering across all browsers
+   ============================================ */
+
+/* Force hardware acceleration for smooth rendering */
+* {
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Prevent text size adjustment in landscape mode */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Fix viewport height issues in Chrome mobile */
+@media screen and (max-width: 768px) {
+  html {
+    height: -webkit-fill-available;
+  }
+  
+  body {
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+  }
+  
+  /* Ensure all containers respect viewport */
+  .container,
+  .scanner-container,
+  .dashboard-container {
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+  
+  /* Fix flexbox issues in Chrome */
+  section,
+  .card,
+  .metric-card {
+    flex-shrink: 0;
+    min-width: 0;
+  }
+  
+  /* Force image and canvas to respect container */
+  img,
+  canvas,
+  svg {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  /* Fix chart container */
+  .chart-container {
+    position: relative;
+    width: 100% !important;
+    height: auto !important;
+  }
+  
+  .chart-container canvas {
+    width: 100% !important;
+    height: auto !important;
+    max-height: 300px;
+  }
+  
+  /* Fix overflow issues */
+  * {
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+  }
+  
+  /* Prevent horizontal scroll */
+  body,
+  html {
+    overflow-x: hidden;
+    width: 100%;
+  }
+  
+  /* Fix input zoom on focus (iOS Safari & Chrome) */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+  
+  /* Fix button rendering */
+  button,
+  .btn {
+    -webkit-appearance: none;
+    appearance: none;
+    border: none;
+    outline: none;
+  }
+  
+  /* Fix gradient rendering */
+  .metric-card,
+  .scanner-header,
+  button {
+    -webkit-background-size: cover;
+    background-size: cover;
+  }
+  
+  /* Smooth scrolling */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Fix table overflow */
+  table {
+    width: 100%;
+    table-layout: fixed;
+  }
+  
+  /* Fix QR reader */
+  #qr-reader,
+  #qr-reader video {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  /* Fix modal positioning */
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow-y: auto;
+  }
+  
+  /* Fix grid layouts */
+  .metrics-grid,
+  .card-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 15px;
+    width: 100%;
+  }
+  
+  /* Prevent tap highlight flashing */
+  * {
+    -webkit-tap-highlight-color: transparent;
+    tap-highlight-color: transparent;
+  }
+  
+  /* Fix position sticky issues */
+  header {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+}
+
+/* Additional Chrome-specific rendering fixes */
+@supports (-webkit-appearance:none) {
+  @media (max-width: 768px) {
+    /* Fix rendering lag */
+    * {
+      will-change: auto;
+    }
+    
+    /* Fix blur on transform */
+    .metric-card,
+    .card,
+    section {
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      -webkit-perspective: 1000;
+      perspective: 1000;
+    }
+    
+    /* Fix flexbox wrapping */
+    .flex-container {
+      display: flex;
+      flex-wrap: wrap;
+      width: 100%;
+    }
+    
+    /* Fix absolute positioning */
+    .absolute {
+      position: absolute;
+      width: auto;
+    }
+  }
+}

@@ -987,6 +987,51 @@ app.post('/users/:id/reset-password', requireAuth, requireRole('admin'), (req, r
   });
 });
 
+// Delete user (admin only)
+app.post('/users/:id/delete', requireAuth, requireRole('admin'), (req, res) => {
+  const { id } = req.params;
+  
+  // Prevent admin from deleting themselves
+  if (parseInt(id) === req.user.id) {
+    return res.status(400).json({ error: 'You cannot delete your own account' });
+  }
+  
+  // Get user info before deletion for logging
+  db.get('SELECT username, email FROM users WHERE id = ?', [id], (err, user) => {
+    if (err) {
+      return res.status(500).json({ error: 'Database error' });
+    }
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    // Delete user (will cascade delete activity logs if foreign key is set)
+    db.run('DELETE FROM users WHERE id = ?', [id], function(err) {
+      if (err) {
+        console.error('Error deleting user:', err);
+        return res.status(500).json({ error: 'Failed to delete user' });
+      }
+      
+      if (this.changes === 0) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      // Log activity
+      db.run(
+        `INSERT INTO activity_logs (user_id, action, target_type, target_id, details)
+         VALUES (?, ?, ?, ?, ?)`,
+        [req.user.id, 'delete_user', 'user', id, `User ${user.username} (${user.email}) deleted by admin ${req.user.username}`]
+      );
+      
+      res.json({ 
+        success: true, 
+        message: `User ${user.username} deleted successfully` 
+      });
+    });
+  });
+});
+
 // Produsen page: create protocol page (must be top-level route)
 app.get('/produsen', requireAuth, requireRole('admin', 'operator'), (req, res) => {
   try {
