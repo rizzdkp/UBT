@@ -1470,6 +1470,54 @@ app.get('/api/patient/partner/:partnerId', requireAuth, (req, res) => {
   );
 });
 
+// API: get all protocols for a partner (for accordion)
+app.get('/api/protocols/partner/:partnerId', requireAuth, (req, res) => {
+  const partnerId = req.params.partnerId;
+  db.all(
+    `SELECT 
+      pr.id,
+      pr.code as protocol_code,
+      pr.status,
+      pr.created_at,
+      pa.patient_name,
+      pa.faskes_name,
+      pa.provinsi
+     FROM protocols pr
+     LEFT JOIN patients pa ON pa.protocol_code = pr.code
+     WHERE pr.partner_id = ?
+     ORDER BY datetime(pr.created_at) DESC`,
+    [partnerId],
+    (err, rows) => {
+      if (err) {
+        console.error('Error fetching protocols by partner:', err);
+        return res.status(500).json({ error: 'Database error' });
+      }
+      res.json(rows || []);
+    }
+  );
+});
+
+// API: get patient by protocol code
+app.get('/api/patient/protocol/:protocolCode', requireAuth, (req, res) => {
+  const protocolCode = req.params.protocolCode;
+  db.get(
+    `SELECT pa.*, pr.code as protocol_code
+     FROM patients pa
+     JOIN protocols pr ON pa.protocol_code = pr.code
+     WHERE pr.code = ?
+     ORDER BY datetime(pa.updated_at) DESC, datetime(pa.created_at) DESC
+     LIMIT 1`,
+    [protocolCode],
+    (err, row) => {
+      if (err) {
+        console.error('Error fetching patient by protocol:', err);
+        return res.status(500).json({ error: 'Database error' });
+      }
+      res.json(row || null);
+    }
+  );
+});
+
 // API: update patient data
 app.put('/api/patient/:id', requireAuth, (req, res) => {
   const patientId = req.params.id;

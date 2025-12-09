@@ -1211,3 +1211,136 @@ tr:hover {
   border-radius: 4px;
   backdrop-filter: saturate(120%) blur(2px);
 }
+
+/* Accordion Styles for Partner Protocols */
+.accordion-toggle {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  user-select: none;
+}
+
+.accordion-toggle:hover {
+  background: rgba(183, 110, 121, 0.05);
+}
+
+.accordion-icon {
+  display: inline-block;
+  transition: transform 0.3s ease;
+  margin-left: 5px;
+}
+
+.accordion-toggle.active .accordion-icon {
+  transform: rotate(180deg);
+}
+
+.accordion-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out;
+  position: relative;
+  z-index: 1;
+}
+
+.accordion-content.active {
+  max-height: 2000px;
+  transition: max-height 0.5s ease-in;
+  z-index: 10;
+}
+
+.protocol-details-container {
+  background: #f7fafc;
+  border-left: 3px solid #B76E79;
+  margin: 10px 0;
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+  z-index: 5;
+}
+
+.protocol-item {
+  background: white;
+  padding: 15px;
+  margin: 8px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.protocol-item:hover {
+  box-shadow: 0 2px 8px rgba(183, 110, 121, 0.15);
+  transform: translateY(-1px);
+}
+
+.protocol-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.protocol-field-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #718096;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.protocol-field-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: #2d3748;
+}
+
+.protocol-status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.protocol-status-badge.created {
+  background: rgba(66, 153, 225, 0.15);
+  color: #2c5282;
+}
+
+.protocol-status-badge.delivered {
+  background: rgba(237, 137, 54, 0.15);
+  color: #9c4221;
+}
+
+.protocol-status-badge.terpakai {
+  background: rgba(72, 187, 120, 0.15);
+  color: #276749;
+}
+
+.accordion-loading {
+  text-align: center;
+  padding: 20px;
+  color: #718096;
+  font-style: italic;
+}
+
+.accordion-empty {
+  text-align: center;
+  padding: 20px;
+  color: #a0aec0;
+  font-size: 14px;
+}
+
+.protocol-item .btn-primary {
+  background: var(--gradient-primary);
+  border: none;
+  color: white;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.protocol-item .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(183, 110, 121, 0.3);
+}

@@ -7,6 +7,22 @@
   * {
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
+    -webkit-transform: translateZ(0);
+  }
+  
+  /* Specific Chrome rendering optimizations */
+  @media (max-width: 768px) {
+    body {
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+    
+    /* Fix layout shifts in Chrome */
+    .container,
+    section,
+    .card {
+      contain: layout style;
+    }
   }
 }
 
@@ -208,7 +224,7 @@ button:active, a:active, .btn:active {
   }
 
   input, select, textarea {
-    width: 100% !important;
+    width: 100%;
     padding: 14px 16px;
     font-size: 16px;
     min-height: 48px; /* Apple's recommended touch target */
@@ -1778,5 +1794,65 @@ img {
   
   .modern-protocols-table {
     font-size: 13px;
+  }
+}
+
+/* Accordion Mobile Responsive */
+@media (max-width: 768px) {
+  .protocol-item {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+    padding: 12px !important;
+  }
+  
+  .protocol-field {
+    padding: 8px;
+    background: #f7fafc;
+    border-radius: 4px;
+  }
+  
+  .protocol-field-label {
+    font-size: 10px !important;
+  }
+  
+  .protocol-field-value {
+    font-size: 13px !important;
+  }
+  
+  .accordion-toggle {
+    width: 100%;
+    justify-content: center;
+    padding: 10px 16px !important;
+    font-size: 13px !important;
+  }
+  
+  .accordion-icon {
+    margin-left: auto;
+  }
+  
+  .protocol-details-container {
+    margin: 10px 0;
+    border-left: none;
+    border-top: 3px solid #B76E79;
+    position: relative;
+    z-index: 5;
+  }
+  
+  /* Fix accordion overlap on mobile */
+  .accordion-content {
+    position: relative;
+    z-index: 10;
+    margin-bottom: 15px;
+  }
+  
+  .accordion-content.active {
+    z-index: 15;
+  }
+  
+  /* Ensure partner cards don't overlap with accordion */
+  .data-card.partner-card {
+    position: relative;
+    z-index: 1;
+    margin-bottom: 15px;
   }
 }

@@ -571,7 +571,6 @@
                     <option value="month" <%= req.query.period === 'month' ? 'selected' : '' %>>Bulan Ini</option>
                     <option value="custom" <%= req.query.period === 'custom' ? 'selected' : '' %>>Rentang Tanggal Khusus</option>
                   </select>
-                  <span class="dropdown-icon">▼</span>
                 </div>
               </div>
               <div class="filter-group custom-date-range" style="display: <%= req.query.period === 'custom' ? 'block' : 'none' %>;">
@@ -721,13 +720,14 @@
                       </div>
                     </td>
                     <td class="patient-name-cell">
-                      <button class="btn-primary btn-sm" 
+                      <button class="btn-primary btn-sm accordion-toggle" 
                               data-partner-id="<%= partner.partner_id || partner.id || '' %>"
-                              onclick="openPatientModal(this.dataset.partnerId)">
-                        <span style="margin-right:6px;">👤</span> LIHAT DETAIL
+                              onclick="toggleAccordion(this.dataset.partnerId, this)">
+                        <span style="margin-right:6px;">📋</span> LIHAT DETAIL
+                        <span class="accordion-icon">▼</span>
                       </button>
-                      <span class="patient-info-badge" style="margin-left:10px; color:#333;">
-                        <%= partner.patient_name || '-' %>
+                      <span class="patient-info-badge" style="margin-left:10px; color:#718096; font-size:12px;">
+                        <%= partner.total_protocols %> protokol
                       </span>
                     </td>
                     <td>
@@ -781,16 +781,18 @@
                 const terpakaiCount = partner.terpakai_count || 0;
                 const partnerId = partner.partner_id || partner.id || '';
               %>
-              <div class="data-card" onclick="openPatientModal('<%= partnerId %>')">
+              <div class="data-card partner-card">
                 <div class="data-card-header">
                   <div>
                     <div class="data-card-title"><%= partner.partner_name %></div>
                     <div class="data-card-subtitle"><%= partner.partner_code %></div>
-                    <% if (partner.patient_name) { %>
-                      <div style="margin-top: 8px; font-size: 13px; color: var(--text-secondary);">
-                        👤 <%= partner.patient_name %>
-                      </div>
-                    <% } %>
+                    <button class="btn-primary btn-sm accordion-toggle" 
+                            style="margin-top: 10px;"
+                            data-partner-id="<%= partnerId %>"
+                            onclick="event.stopPropagation(); toggleAccordion(this.dataset.partnerId, this)">
+                      <span style="margin-right:6px;">📋</span> LIHAT DETAIL
+                      <span class="accordion-icon">▼</span>
+                    </button>
                   </div>
                 </div>
                 
@@ -1324,6 +1326,174 @@
             _badge('Tenaga Kesehatan', data.tenaga_kesehatan),
             _badge('Data Dibuat', when)
           ].join('');
+        }
+      }
+
+      // Accordion toggle for partner protocols
+      async function toggleAccordion(partnerId, element) {
+        if (!partnerId) return;
+        
+        const accordionId = `accordion-${partnerId}`;
+        const existingAccordion = document.getElementById(accordionId);
+        
+        // Toggle existing accordion (CLOSE)
+        if (existingAccordion) {
+          const isActive = existingAccordion.classList.contains('active');
+          
+          if (isActive) {
+            // Close accordion
+            existingAccordion.classList.remove('active');
+            element.classList.remove('active');
+            
+            // Remove after animation
+            setTimeout(() => {
+              existingAccordion.remove();
+            }, 300);
+          } else {
+            // Reopen accordion
+            existingAccordion.classList.add('active');
+            element.classList.add('active');
+            
+            // Scroll to accordion on mobile
+            setTimeout(() => {
+              existingAccordion.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+          }
+          return;
+        }
+        
+        // Create new accordion
+        element.classList.add('active');
+        
+        // Find the row/card to insert after
+        const row = element.closest('tr') || element.closest('.partner-card');
+        if (!row) return;
+        
+        // Create accordion container
+        const accordionContent = document.createElement(row.tagName === 'TR' ? 'tr' : 'div');
+        accordionContent.id = accordionId;
+        accordionContent.className = 'accordion-content';
+        
+        if (row.tagName === 'TR') {
+          accordionContent.innerHTML = `
+            <td colspan="8" style="padding: 0;">
+              <div class="protocol-details-container">
+                <div class="accordion-loading">⏳ Memuat data protokol...</div>
+              </div>
+            </td>
+          `;
+        } else {
+          accordionContent.className += ' partner-card';
+          accordionContent.innerHTML = `
+            <div class="protocol-details-container">
+              <div class="accordion-loading">⏳ Memuat data protokol...</div>
+            </div>
+          `;
+        }
+        
+        row.parentNode.insertBefore(accordionContent, row.nextSibling);
+        
+        // Fetch protocols
+        try {
+          const res = await fetch(`/api/protocols/partner/${partnerId}`);
+          const protocols = await res.json();
+          
+          const container = accordionContent.querySelector('.protocol-details-container');
+          
+          if (!protocols || protocols.length === 0) {
+            container.innerHTML = '<div class="accordion-empty">Belum ada data protokol</div>';
+          } else {
+            let html = '';
+            protocols.forEach((protocol, index) => {
+              const date = new Date(protocol.created_at).toLocaleDateString('id-ID', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+              });
+              
+              html += `
+                <div class="protocol-item">
+                  <div class="protocol-field">
+                    <span class="protocol-field-label">Kode Protokol</span>
+                    <span class="protocol-field-value">${protocol.protocol_code || '-'}</span>
+                  </div>
+                  <div class="protocol-field">
+                    <span class="protocol-field-label">Nama Pasien</span>
+                    <span class="protocol-field-value">${protocol.patient_name || 'Belum diisi'}</span>
+                  </div>
+                  <div class="protocol-field">
+                    <span class="protocol-field-label">Faskes</span>
+                    <span class="protocol-field-value">${protocol.faskes_name || '-'}</span>
+                  </div>
+                  <div class="protocol-field">
+                    <span class="protocol-field-label">Status</span>
+                    <span class="protocol-status-badge ${protocol.status}">${protocol.status}</span>
+                  </div>
+                  <div class="protocol-field">
+                    <span class="protocol-field-label">Tanggal Dibuat</span>
+                    <span class="protocol-field-value">${date}</span>
+                  </div>
+                  <div class="protocol-field" style="grid-column: 1 / -1;">
+                    <button class="btn-primary btn-sm" 
+                            onclick="openPatientModalByProtocol('${protocol.protocol_code}')"
+                            style="width: 100%; padding: 8px 16px; border-radius: 8px;">
+                      👤 LIHAT & EDIT DETAIL PASIEN
+                    </button>
+                  </div>
+                </div>
+              `;
+            });
+            container.innerHTML = html;
+          }
+          
+          // Activate accordion with animation
+          setTimeout(() => {
+            accordionContent.classList.add('active');
+            
+            // Auto-scroll to accordion on mobile (smooth scroll to view)
+            setTimeout(() => {
+              accordionContent.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'nearest',
+                inline: 'nearest'
+              });
+            }, 100);
+          }, 10);
+          
+        } catch (e) {
+          console.error('Error fetching protocols:', e);
+          const container = accordionContent.querySelector('.protocol-details-container');
+          container.innerHTML = '<div class="accordion-empty">❌ Gagal memuat data</div>';
+        }
+      }
+
+      // New function to open modal by protocol code
+      async function openPatientModalByProtocol(protocolCode) {
+        if (!protocolCode) return;
+        _editMode = false;
+        _patientModal.style.display = 'flex';
+        document.getElementById('p_name').textContent = 'Memuat...';
+        document.getElementById('p_code').textContent = 'Kode Protokol: -';
+        document.getElementById('p_grid').innerHTML = '';
+        document.getElementById('p_gpa').innerHTML = '';
+        document.getElementById('p_footer').innerHTML = '';
+        document.getElementById('p_actions').style.display = 'none';
+        document.getElementById('patientEdit').style.display = 'none';
+        
+        try {
+          const res = await fetch(`/api/patient/protocol/${protocolCode}`);
+          const data = await res.json();
+          if (!data) {
+            document.getElementById('p_name').textContent = 'Belum ada data pasien';
+            document.getElementById('p_footer').innerHTML = `<a href="/scanner" class="btn-primary" style="text-decoration:none;">📱 Isi Data via Scanner</a>`;
+            return;
+          }
+          
+          document.getElementById('patientEdit').style.display = 'flex';
+          renderPatientData(data);
+        } catch (e) {
+          console.error('Error fetching patient:', e);
+          document.getElementById('p_name').textContent = 'Gagal memuat data';
         }
       }
 

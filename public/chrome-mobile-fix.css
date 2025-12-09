@@ -1,192 +1,298 @@
 /* ============================================
-   CHROME MOBILE SPECIFIC FIXES
-   Ensures consistent rendering across all browsers
+   UNIVERSAL MOBILE BROWSER FIXES
+   Cross-browser compatibility: iOS Safari, Android Chrome/Brave
    ============================================ */
 
-/* Force hardware acceleration for smooth rendering */
-* {
-  -webkit-transform: translateZ(0);
-  transform: translateZ(0);
-  -webkit-font-smoothing: antialiased;
-}
-
-/* Prevent text size adjustment in landscape mode */
+/* Base text rendering for all browsers */
 html {
   -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Fix viewport height issues in Chrome mobile */
+/* Mobile-specific fixes */
 @media screen and (max-width: 768px) {
+  /* Fix viewport height across all mobile browsers */
   html {
+    height: 100%;
     height: -webkit-fill-available;
   }
   
   body {
     min-height: 100vh;
     min-height: -webkit-fill-available;
+    overflow-x: hidden;
+    width: 100%;
   }
   
-  /* Ensure all containers respect viewport */
+  /* Prevent horizontal overflow */
   .container,
-  .scanner-container,
-  .dashboard-container {
-    width: 100%;
+  main,
+  section {
     max-width: 100vw;
     overflow-x: hidden;
+    box-sizing: border-box;
   }
   
-  /* Fix flexbox issues in Chrome */
-  section,
+  /* Fix flex items */
   .card,
-  .metric-card {
+  .metric-card,
+  .partner-card,
+  .data-card {
     flex-shrink: 0;
     min-width: 0;
+    box-sizing: border-box;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
   }
   
-  /* Force image and canvas to respect container */
+  /* Media elements */
   img,
   canvas,
-  svg {
+  svg,
+  video {
     max-width: 100%;
     height: auto;
+    display: block;
   }
   
-  /* Fix chart container */
-  .chart-container {
+  /* Chart fixes for all browsers */
+  .chart-container,
+  .chart-wrapper {
     position: relative;
-    width: 100% !important;
-    height: auto !important;
-  }
-  
-  .chart-container canvas {
-    width: 100% !important;
-    height: auto !important;
-    max-height: 300px;
-  }
-  
-  /* Fix overflow issues */
-  * {
-    box-sizing: border-box;
-    -webkit-box-sizing: border-box;
-  }
-  
-  /* Prevent horizontal scroll */
-  body,
-  html {
-    overflow-x: hidden;
     width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
   }
   
-  /* Fix input zoom on focus (iOS Safari & Chrome) */
+  .chart-container canvas,
+  canvas {
+    max-width: 100%;
+    height: auto;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+  }
+  
+  /* CRITICAL: Prevent auto-zoom on input focus (iOS Safari & Android Chrome) */
   input[type="text"],
   input[type="email"],
   input[type="password"],
   input[type="number"],
   input[type="tel"],
+  input[type="search"],
   select,
   textarea {
-    font-size: 16px !important;
-  }
-  
-  /* Fix button rendering */
-  button,
-  .btn {
+    font-size: 16px;
     -webkit-appearance: none;
+    -moz-appearance: none;
     appearance: none;
-    border: none;
-    outline: none;
   }
   
-  /* Fix gradient rendering */
-  .metric-card,
-  .scanner-header,
-  button {
-    -webkit-background-size: cover;
-    background-size: cover;
+  /* Custom select dropdown arrow */
+  select {
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 20px;
+    padding-right: 35px;
   }
   
-  /* Smooth scrolling */
-  * {
-    -webkit-overflow-scrolling: touch;
+  /* Button fixes */
+  button,
+  .btn,
+  .btn-primary,
+  .btn-secondary {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
   }
   
-  /* Fix table overflow */
+  /* Table responsive behavior */
   table {
     width: 100%;
+    max-width: 100%;
     table-layout: fixed;
   }
   
-  /* Fix QR reader */
-  #qr-reader,
-  #qr-reader video {
-    width: 100% !important;
-    max-width: 100% !important;
+  table td,
+  table th {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
   }
   
-  /* Fix modal positioning */
+  /* QR Scanner fixes */
+  #qr-reader,
+  #qr-reader video,
+  #qr-reader__scan_region,
+  #video-container,
+  #video,
+  #canvas {
+    width: 100%;
+    max-width: 100%;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+  }
+  
+  /* Modal positioning */
   .modal {
     position: fixed;
     top: 0;
     left: 0;
+    right: 0;
+    bottom: 0;
     width: 100vw;
     height: 100vh;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
   
-  /* Fix grid layouts */
+  .modal-content {
+    margin: 20px auto;
+    max-width: 90vw;
+  }
+  
+  /* Grid layouts */
   .metrics-grid,
-  .card-grid {
+  .card-grid,
+  .stats-grid {
     display: grid;
     grid-template-columns: 1fr;
     gap: 15px;
     width: 100%;
   }
   
-  /* Prevent tap highlight flashing */
-  * {
-    -webkit-tap-highlight-color: transparent;
-    tap-highlight-color: transparent;
+  /* Accordion specific fixes */
+  .accordion-content {
+    transition: max-height 0.3s ease-in-out;
+    overflow: hidden;
+    width: 100%;
+    -webkit-overflow-scrolling: touch;
   }
   
-  /* Fix position sticky issues */
-  header {
+  .accordion-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    text-align: left;
+  }
+  
+  .protocol-details-container {
+    width: 100%;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+  }
+  
+  .protocol-item {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+  }
+  
+  /* Remove tap highlight */
+  * {
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Sticky header */
+  header,
+  .header-sticky {
     position: -webkit-sticky;
     position: sticky;
     top: 0;
     z-index: 100;
   }
+  
+  /* Smooth momentum scrolling */
+  body,
+  .modal,
+  .accordion-content {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Hardware acceleration for smooth rendering */
+  .metric-card,
+  .card,
+  section,
+  .scanner-section {
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-perspective: 1000px;
+    perspective: 1000px;
+  }
 }
 
-/* Additional Chrome-specific rendering fixes */
-@supports (-webkit-appearance:none) {
-  @media (max-width: 768px) {
-    /* Fix rendering lag */
-    * {
-      will-change: auto;
+/* iOS Safari specific fixes */
+@supports (-webkit-touch-callout: none) {
+  @media screen and (max-width: 768px) {
+    /* Fix iOS Safari bottom bar issue */
+    body {
+      min-height: -webkit-fill-available;
     }
     
-    /* Fix blur on transform */
-    .metric-card,
-    .card,
-    section {
-      -webkit-backface-visibility: hidden;
-      backface-visibility: hidden;
-      -webkit-perspective: 1000;
-      perspective: 1000;
+    /* Fix iOS input styling */
+    input,
+    textarea,
+    select {
+      border-radius: 0;
     }
     
-    /* Fix flexbox wrapping */
-    .flex-container {
-      display: flex;
-      flex-wrap: wrap;
-      width: 100%;
+    /* Fix iOS button styling */
+    button {
+      cursor: pointer;
+    }
+  }
+}
+
+/* Android Chrome/Brave specific fixes */
+@supports not (-webkit-touch-callout: none) {
+  @media screen and (max-width: 768px) {
+    /* Android Chrome viewport fix */
+    html {
+      height: 100%;
     }
     
-    /* Fix absolute positioning */
-    .absolute {
-      position: absolute;
-      width: auto;
+    /* Android form autofill background */
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover,
+    input:-webkit-autofill:focus {
+      -webkit-box-shadow: 0 0 0px 1000px white inset;
+      transition: background-color 5000s ease-in-out 0s;
     }
+  }
+}
+
+/* Landscape mode optimizations */
+@media screen and (max-width: 768px) and (orientation: landscape) {
+  .protocol-item {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Small mobile devices (portrait) */
+@media screen and (max-width: 480px) and (orientation: portrait) {
+  .protocol-item,
+  .metrics-grid,
+  .card-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  /* Smaller spacing on small screens */
+  .container {
+    padding-left: 12px;
+    padding-right: 12px;
   }
 }
